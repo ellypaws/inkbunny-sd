@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // Config stores the API host and key.
@@ -17,7 +18,7 @@ type Config struct {
 	Endpoint url.URL
 }
 
-func localhost() Config {
+func Localhost() Config {
 	return Config{
 		Host:   "localhost:7869",
 		APIKey: "api-key",
@@ -29,16 +30,13 @@ func localhost() Config {
 	}
 }
 
-func defaultRequest() *Request {
+func DefaultRequest(content string) *Request {
 	return &Request{
 		Messages: []Message{
-			{
-				Role:    SystemRole,
-				Content: "The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.",
-			},
+			DefaultSystem,
 			{
 				Role:    UserRole,
-				Content: "How can I help you today?",
+				Content: content,
 			},
 		},
 		Temperature: 0.7,
@@ -48,8 +46,8 @@ func defaultRequest() *Request {
 }
 
 // inference makes a POST request to the OpenAI API with the given request data.
-func (c Config) inference(requestData *Request) (*http.Response, error) {
-	requestBytes, err := json.Marshal(requestData)
+func (c Config) inference(r *Request) (*http.Response, error) {
+	requestBytes, err := json.Marshal(r)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request data: %w", err)
 	}
@@ -71,31 +69,58 @@ func (c Config) inference(requestData *Request) (*http.Response, error) {
 	return resp, nil
 }
 
+func (c Config) Infer(request *Request) (Response, error) {
+	resp, err := c.inference(request)
+	if err != nil {
+		return Response{}, fmt.Errorf("failed to make inference request: %w", err)
+	}
+
+	var response Response
+	if request.Stream {
+		lines, err := handleStreamedResponse(resp)
+		if err != nil {
+			return Response{}, fmt.Errorf("failed to handle streamed response: %w", err)
+		}
+		response, err = UnmarshalResponse([]byte(strings.Join(lines, "")))
+		if err != nil {
+			return Response{}, fmt.Errorf("failed to unmarshal streamed response: %w", err)
+		}
+	} else {
+		response, err = handleResponse(resp)
+		if err != nil {
+			return Response{}, fmt.Errorf("failed to handle response: %w", err)
+		}
+	}
+
+	return response, nil
+}
+
 // handleResponse parses the HTTP response from the inference API call using io.ReadAll.
-func handleResponse(response *http.Response) (*[]Message, error) {
+func handleResponse(response *http.Response) (Response, error) {
 	defer response.Body.Close()
 
 	// Use io.ReadAll to read the response body
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
+		return Response{}, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	var messages []Message
+	var messages Response
 	if err := json.Unmarshal(body, &messages); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+		return Response{}, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
 
-	return &messages, nil
+	return messages, nil
 }
 
 // handleStreamedResponse processes the HTTP response from a streamed API call.
-func handleStreamedResponse(response *http.Response) error {
+func handleStreamedResponse(response *http.Response) ([]string, error) {
 	defer response.Body.Close()
 
 	// Create a new buffered reader to read the response body line by line
 	reader := bufio.NewReader(response.Body)
 
+	var lines []string
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
@@ -104,11 +129,10 @@ func handleStreamedResponse(response *http.Response) error {
 				break
 			}
 			// For any other error, return it
-			return fmt.Errorf("error reading streamed response: %w", err)
+			return nil, fmt.Errorf("error reading streamed response: %w", err)
 		}
-		// Process the line here (for example, print it)
-		fmt.Print(line)
+		lines = append(lines, line)
 	}
 
-	return nil
+	return lines, nil
 }
