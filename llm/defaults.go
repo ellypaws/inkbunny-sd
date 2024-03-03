@@ -66,10 +66,7 @@ func DefaultRequest(content string) *Request {
 	return &Request{
 		Messages: []Message{
 			DefaultSystem,
-			{
-				Role:    UserRole,
-				Content: content,
-			},
+			UserMessage(content),
 		},
 		Temperature: 0.7,
 		MaxTokens:   2048,
