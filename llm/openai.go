@@ -18,33 +18,6 @@ type Config struct {
 	Endpoint url.URL
 }
 
-func Localhost() Config {
-	return Config{
-		Host:   "localhost:7869",
-		APIKey: "api-key",
-		Endpoint: url.URL{
-			Scheme: "http",
-			Host:   "localhost:7869",
-			Path:   "/v1/chat/completions",
-		},
-	}
-}
-
-func DefaultRequest(content string) *Request {
-	return &Request{
-		Messages: []Message{
-			DefaultSystem,
-			{
-				Role:    UserRole,
-				Content: content,
-			},
-		},
-		Temperature: 0.7,
-		MaxTokens:   2048,
-		Stream:      false,
-	}
-}
-
 // inference makes a POST request to the OpenAI API with the given request data.
 func (c Config) inference(r *Request) (*http.Response, error) {
 	requestBytes, err := json.Marshal(r)

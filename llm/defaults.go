@@ -1,5 +1,7 @@
 package llm
 
+import "net/url"
+
 var DefaultSystem = Message{
 	Role: SystemRole,
 	Content: "You are a backend API that responds to requests in natural language and outputs a raw JSON object. " +
@@ -45,5 +47,32 @@ func UserMessage(content string) Message {
 	return Message{
 		Role:    UserRole,
 		Content: content,
+	}
+}
+
+func Localhost() Config {
+	return Config{
+		Host:   "localhost:7869",
+		APIKey: "api-key",
+		Endpoint: url.URL{
+			Scheme: "http",
+			Host:   "localhost:7869",
+			Path:   "/v1/chat/completions",
+		},
+	}
+}
+
+func DefaultRequest(content string) *Request {
+	return &Request{
+		Messages: []Message{
+			DefaultSystem,
+			{
+				Role:    UserRole,
+				Content: content,
+			},
+		},
+		Temperature: 0.7,
+		MaxTokens:   2048,
+		Stream:      false,
 	}
 }
