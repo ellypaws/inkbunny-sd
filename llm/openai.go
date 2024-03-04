@@ -48,6 +48,10 @@ func (c Config) Infer(request *Request) (Response, error) {
 		return Response{}, fmt.Errorf("failed to make inference request: %w", err)
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return Response{}, fmt.Errorf("inference request failed with status code %d", resp.StatusCode)
+	}
+
 	var response Response
 	if request.Stream {
 		lines, err := handleStreamedResponse(resp)
