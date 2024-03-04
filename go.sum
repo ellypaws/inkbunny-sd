@@ -2,8 +2,8 @@ github.com/PuerkitoBio/goquery v1.9.1 h1:mTL6XjbJTZdpfL+Gwl5U2h1l9yEkJjhmlTeV9VP
 github.com/PuerkitoBio/goquery v1.9.1/go.mod h1:cW1n6TmIMDoORQU5IU/P1T3tGFunOeXEpGP2WHRwkbY=
 github.com/andybalholm/cascadia v1.3.2 h1:3Xi6Dw5lHF15JtdcmAHD3i1+T8plmv7BQ/nsViSLyss=
 github.com/andybalholm/cascadia v1.3.2/go.mod h1:7gtRlve5FxPPgIgX36uWBX58OdBsSS6lUvCFb+h7KvU=
-github.com/ellypaws/inkbunny/api v0.0.0-20240303173659-d787970bc751 h1:4pISCx+sm/KRjL2OOlReXwES98CGECRahXEcREXRZ38=
-github.com/ellypaws/inkbunny/api v0.0.0-20240303173659-d787970bc751/go.mod h1:71XKNfel7UtrWsK6hVyrExYAaqXUt5CrZie0/YFLC44=
+github.com/ellypaws/inkbunny/api v0.0.0-20240304154122-2a5ece499a44 h1:XHPBCjYGei7u6v6Gt4po4ycLPGmCmxzsuQ0C9q7JD1U=
+github.com/ellypaws/inkbunny/api v0.0.0-20240304154122-2a5ece499a44/go.mod h1:71XKNfel7UtrWsK6hVyrExYAaqXUt5CrZie0/YFLC44=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/sahilm/fuzzy v0.1.1 h1:ceu5RHF8DGgoi+/dR5PsECjCDH1BE3Fnmpo7aVXOdRA=

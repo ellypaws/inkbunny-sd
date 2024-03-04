@@ -3,7 +3,7 @@ module github.com/ellypaws/inkbunny-sd
 go 1.22
 
 require (
-	github.com/ellypaws/inkbunny/api v0.0.0-20240303173659-d787970bc751
+	github.com/ellypaws/inkbunny/api v0.0.0-20240304154122-2a5ece499a44
 	golang.org/x/term v0.17.0
 )
 
