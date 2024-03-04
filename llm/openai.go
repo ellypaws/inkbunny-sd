@@ -54,14 +54,14 @@ func (c Config) Infer(request *Request) (Response, error) {
 
 	var response Response
 	if request.Stream {
-		lines, err := handleStreamedResponse(resp)
+		if request.StreamChannel == nil {
+			return Response{}, fmt.Errorf("streaming request requires a channel")
+		}
+		messages, err := handleStreamedResponse(resp, request.StreamChannel)
 		if err != nil {
 			return Response{}, fmt.Errorf("failed to handle streamed response: %w", err)
 		}
-		response, err = UnmarshalResponse([]byte(strings.Join(lines, "")))
-		if err != nil {
-			return Response{}, fmt.Errorf("failed to unmarshal streamed response: %w", err)
-		}
+		response = messages
 	} else {
 		response, err = handleResponse(resp)
 		if err != nil {
@@ -70,6 +70,12 @@ func (c Config) Infer(request *Request) (Response, error) {
 	}
 
 	return response, nil
+}
+
+// TokenCount returns the number of tokens in the message.
+// Implement this based on your message structure.
+func (m Response) TokenCount() int {
+	return len(m.Choices)
 }
 
 // handleResponse parses the HTTP response from the inference API call using io.ReadAll.
@@ -90,26 +96,71 @@ func handleResponse(response *http.Response) (Response, error) {
 	return messages, nil
 }
 
-// handleStreamedResponse processes the HTTP response from a streamed API call.
-func handleStreamedResponse(response *http.Response) ([]string, error) {
+// handleStreamedResponse processes streamed responses, sending each message through the response channel.
+// It follows an SSE (a Server-Sent Events) format which prepends each message with "data: ".
+//
+//	data: {"id":"chatcmpl-uefukdhy3krmm74ri9qk2f","object":"chat.completion.chunk","created":1709571416,"model":"deepseek-coder-6.7b-instruct.Q4_K_S.gguf","choices":[{"index":0,"delta":{"role":"assistant","content":"?"},"finish_reason":null}]}
+//	data: {"id":"chatcmpl-uefukdhy3krmm74ri9qk2f","object":"chat.completion.chunk","created":1709571416,"model":"deepseek-coder-6.7b-instruct.Q4_K_S.gguf","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+//	data: [DONE]
+func handleStreamedResponse(response *http.Response, responseChan chan<- *Response) (Response, error) {
 	defer response.Body.Close()
-
-	// Create a new buffered reader to read the response body line by line
 	reader := bufio.NewReader(response.Body)
 
-	var lines []string
+	var responses []Response
 	for {
-		line, err := reader.ReadString('\n')
+		line, err := reader.ReadBytes('\n')
 		if err != nil {
-			// If we reach the end of the stream, break out of the loop
-			if err.Error() == "EOF" {
+			if err == io.EOF {
+				close(responseChan) // Close channel on EOF
 				break
 			}
-			// For any other error, return it
-			return nil, fmt.Errorf("error reading streamed response: %w", err)
+			return Response{}, fmt.Errorf("failed to read line: %w", err)
 		}
-		lines = append(lines, line)
+
+		if !bytes.HasPrefix(line, []byte("data:")) {
+			continue
+		}
+
+		line = bytes.TrimPrefix(line, []byte("data: "))
+
+		if bytes.Equal(line, []byte("[DONE]")) {
+			continue
+		}
+
+		var r Response
+		if err := json.Unmarshal(line, &r); err != nil {
+			return Response{}, fmt.Errorf("failed to unmarshal response: %w", err)
+		}
+
+		// Send the token count for the message through the channel
+		responseChan <- &r
+
+		responses = append(responses, r)
 	}
 
-	return lines, nil
+	if len(responses) == 0 {
+		return Response{}, fmt.Errorf("no responses received")
+	}
+
+	var accumulatedTokens strings.Builder
+	for _, r := range responses {
+		accumulatedTokens.WriteString(r.Choices[0].Delta.Content)
+	}
+
+	out := responses[len(responses)-1]
+
+	out.Choices[0].Message.Content = out.Choices[0].Delta.Content
+	out.Choices[0].Message.Content = accumulatedTokens.String()
+
+	return out, nil
+}
+
+func MonitorTokens(responseChan <-chan *Response) {
+	var accumulatedTokens int
+	for r := range responseChan {
+		accumulatedTokens += r.TokenCount()
+		fmt.Printf("\rAccumulated tokens: %d", accumulatedTokens)
+		fmt.Print("\033[K") // Clear the line
+	}
+	fmt.Printf("\nStream ended.")
 }

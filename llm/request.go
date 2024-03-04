@@ -21,15 +21,17 @@ func (r *Request) Marshal() ([]byte, error) {
 type Role string
 
 const (
-	SystemRole Role = "system"
-	UserRole   Role = "user"
+	SystemRole    Role = "system"
+	UserRole      Role = "user"
+	AssistantRole Role = "assistant"
 )
 
 type Request struct {
-	Messages    []Message `json:"messages"`
-	Temperature float64   `json:"temperature"`
-	MaxTokens   int64     `json:"max_tokens"`
-	Stream      bool      `json:"stream"`
+	Messages      []Message      `json:"messages"`
+	Temperature   float64        `json:"temperature"`
+	MaxTokens     int64          `json:"max_tokens"`
+	Stream        bool           `json:"stream"`
+	StreamChannel chan *Response `json:"-"`
 }
 
 type Message struct {
@@ -58,6 +60,7 @@ type Response struct {
 
 type Choice struct {
 	Index        int64   `json:"index"`
+	Delta        Message `json:"delta"`
 	Message      Message `json:"message"`
 	FinishReason string  `json:"finish_reason"`
 }
