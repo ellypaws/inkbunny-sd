@@ -1,4 +1,4 @@
-module inkbunny-sd
+module github.com/ellypaws/inkbunny-sd
 
 go 1.22
 

@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ellypaws/inkbunny-sd/entities"
+	"github.com/ellypaws/inkbunny-sd/llm"
 	"github.com/ellypaws/inkbunny/api"
 	"golang.org/x/term"
-	"inkbunny-sd/entities"
-	"inkbunny-sd/llm"
 	"log"
 	"os"
 	"regexp"
