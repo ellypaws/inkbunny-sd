@@ -2,7 +2,6 @@ package llm
 
 import (
 	"github.com/ellypaws/inkbunny-sd/entities"
-	"github.com/ellypaws/inkbunny-sd/utils"
 	"testing"
 )
 
@@ -54,7 +53,7 @@ func TestPrefillSystemDump(t *testing.T) {
 
 }
 
-func TestPrefillSystemDumpWithDefault(t *testing.T) {
+func TestDefaultSystem(t *testing.T) {
 	defaultRequest := DefaultSystem
 
 	if defaultRequest.Content != expected {
@@ -75,32 +74,10 @@ func TestPrefillSystemDumpWithDefault(t *testing.T) {
 	}
 }
 
-func TestPrefillSystem(t *testing.T) {
-	message := PrefillSystem(entities.TextToImageRequest{})
-
-	if message.Content != expected {
-		t.Errorf("<| Expected |>\n\n```\n%s\n```\n\n<| Got |>\n\n```\n%s\n```", expected, message.Content)
-	}
-
-	message.Content = utils.ExtactJson(message.Content)
-	expectedCopy := utils.ExtactJson(expected)
-	if message.Content != expectedCopy {
-		t.Errorf("<| Expected |>\n\n```json\n%s\n```\n\n<| Got |>\n\n```json\n%s\n```", expectedCopy, message.Content)
-	}
-}
-
 func TestDefaultRequest(t *testing.T) {
 	request := DefaultRequest("")
 
 	if request.Messages[0].Content != expected {
 		t.Errorf("<| Expected |>\n\n```\n%s\n```\n\n<| Got |>\n\n```\n%s\n```", expected, request.Messages[0].Content)
-	}
-}
-
-func TestDefaultSystem(t *testing.T) {
-	message := DefaultSystem
-
-	if message.Content != expected {
-		t.Errorf("<| Expected |>\n\n```\n%s\n```\n\n<| Got |>\n\n```\n%s\n```", expected, message.Content)
 	}
 }
