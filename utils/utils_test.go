@@ -39,7 +39,7 @@ func TestExtractNegativeForward(t *testing.T) {
 }
 
 func TestExtractAll(t *testing.T) {
-	result := ExtractAll(sample, patterns)
+	result := ExtractAll(sample, Patterns)
 	if len(result) == 0 {
 		t.Error("No results")
 	}
@@ -67,7 +67,7 @@ func TestExtractAll(t *testing.T) {
 	expected["loraHashes"] = "sizeslideroffset: 1d5a77d6b141, lora_Furry_female: 578e3efedb64, Furtastic_Detailer: 7aa86566f5ee"
 	expected["tiHashes"] = "AS-YoungestV2: c71427a287b5, AS-YoungV2: 714bba6525de"
 
-	result = ExtractAll(sampleWithHashes, patterns)
+	result = ExtractAll(sampleWithHashes, Patterns)
 	assert(t, result, expected)
 }
 

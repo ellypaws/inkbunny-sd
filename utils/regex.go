@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	patterns = map[string]*regexp.Regexp{
+	Patterns = map[string]*regexp.Regexp{
 		"steps":      regexp.MustCompile(`(?i)steps:? (?P<steps>\d+)`),
 		"sampler":    regexp.MustCompile(`(?i)sampler:? (?P<sampler>[\w+ ]+)`),
 		"cfg":        regexp.MustCompile(`(?i)cfg scale:? (?P<cfg>[\d.]+)`),
