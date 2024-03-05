@@ -23,6 +23,10 @@ var (
 	positivePattern = regexp.MustCompile(`(?is)(?:(?:primary |pos(?:itive)? )?prompts?:?)(.+)negative prompt:?`)
 	negativePattern = regexp.MustCompile(`(?is)(?:(?:|neg(?:ative)? )?prompts?:?)(.*?)(?:steps|sampler|model)`)
 	bbCode          = regexp.MustCompile(`\[\/?\w+\]`)
+
+	extractJson     = regexp.MustCompile(`(?ms){.*}`)
+	removeComments  = regexp.MustCompile(`(?m)//.*$`)
+	escapeBackslash = regexp.MustCompile(`\\+([()])`)
 )
 
 const (
@@ -30,6 +34,8 @@ const (
 	loraEntry  = `(?i)(?P<key>\w+): (?P<value>\w+)`
 	tiHashes   = `(?i)ti hashes:? "(?P<ti>[^"]+)"`
 	tiEntry    = `(?i)(?P<key>\w+): (?P<value>\w+)`
+
+	escapeBackslashReplacement = `\\$1`
 )
 
 func RemoveBBCode(s string) string {
@@ -56,4 +62,11 @@ func Extract(s string, r *regexp.Regexp) string {
 	}
 
 	return ""
+}
+
+func ExtactJson(content string) string {
+	content = extractJson.FindString(content)
+	content = removeComments.ReplaceAllString(content, "")
+	content = escapeBackslash.ReplaceAllString(content, escapeBackslashReplacement)
+	return content
 }
