@@ -188,6 +188,8 @@ func main() {
 	fmt.Scanln(&l)
 	if l == "y" {
 		logout(user)
+	} else {
+		main()
 	}
 }
 
