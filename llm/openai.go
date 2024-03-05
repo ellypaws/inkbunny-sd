@@ -162,5 +162,5 @@ func MonitorTokens(responseChan <-chan *Response) {
 		fmt.Printf("\rAccumulated tokens: %d", accumulatedTokens)
 		fmt.Print("\033[K") // Clear the line
 	}
-	fmt.Printf("\nStream ended.")
+	fmt.Printf("\nStream ended.\n")
 }
