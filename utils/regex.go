@@ -22,7 +22,7 @@ var (
 
 	positivePattern = regexp.MustCompile(`(?is)(?:(?:primary |pos(?:itive)? )?prompts?:?)(.+)negative prompt:?`)
 	negativePattern = regexp.MustCompile(`(?is)(?:(?:|neg(?:ative)? )?prompts?:?)(.*?)(?:steps|sampler|model)`)
-	bbCode          = regexp.MustCompile(`\[\/?\w+\]`)
+	bbCode          = regexp.MustCompile(`\[\/?[\w=]+\]`)
 
 	extractJson     = regexp.MustCompile(`(?ms){.*}`)
 	removeComments  = regexp.MustCompile(`(?m)//.*$`)
