@@ -38,7 +38,7 @@ func TestStream(t *testing.T) {
 			Content: "Write an essay",
 		}, UserMessage("Write a generic API library for Inkbunny")},
 		Temperature:   1.0,
-		MaxTokens:     1024,
+		MaxTokens:     128,
 		Stream:        true,
 		StreamChannel: accumulatedTokens,
 	})
