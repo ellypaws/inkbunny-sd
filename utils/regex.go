@@ -64,7 +64,7 @@ func Extract(s string, r *regexp.Regexp) string {
 	return ""
 }
 
-func ExtactJson(content string) string {
+func ExtractJson(content string) string {
 	content = extractJson.FindString(content)
 	content = removeComments.ReplaceAllString(content, "")
 	content = escapeBackslash.ReplaceAllString(content, escapeBackslashReplacement)

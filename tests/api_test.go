@@ -102,7 +102,7 @@ func TestPositivePrompt(t *testing.T) {
 			continue
 		}
 
-		message := utils.ExtactJson(resp.Choices[0].Message.Content)
+		message := utils.ExtractJson(resp.Choices[0].Message.Content)
 		textToImage, err := entities.UnmarshalTextToImageRequest([]byte(message))
 		if err != nil {
 			t.Errorf("Error unmarshalling text to image: %v, retrying (%v/3)", err, i+1)

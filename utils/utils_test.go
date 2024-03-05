@@ -62,9 +62,9 @@ func TestExtractAll(t *testing.T) {
 
 	assert(t, result, expected)
 
-	sampleWithHashes := sample + ` Lora hashes: "breastsizeslideroffset: 1d5a77d6b141, lora_Furry_female: 578e3efedb64, Furtastic_Detailer: 7aa86566f5ee", TI hashes: "AS-YoungestV2: c71427a287b5, AS-YoungV2: 714bba6525de", Version: 1.7.3`
+	sampleWithHashes := sample + ` Lora hashes: "sizeslideroffset: 1d5a77d6b141, lora_Furry_female: 578e3efedb64, Furtastic_Detailer: 7aa86566f5ee", TI hashes: "AS-YoungestV2: c71427a287b5, AS-YoungV2: 714bba6525de", Version: 1.7.3`
 
-	expected["loraHashes"] = "breastsizeslideroffset: 1d5a77d6b141, lora_Furry_female: 578e3efedb64, Furtastic_Detailer: 7aa86566f5ee"
+	expected["loraHashes"] = "sizeslideroffset: 1d5a77d6b141, lora_Furry_female: 578e3efedb64, Furtastic_Detailer: 7aa86566f5ee"
 	expected["tiHashes"] = "AS-YoungestV2: c71427a287b5, AS-YoungV2: 714bba6525de"
 
 	result = ExtractAll(sampleWithHashes, patterns)
