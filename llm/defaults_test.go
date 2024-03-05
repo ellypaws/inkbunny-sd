@@ -32,7 +32,7 @@ const expected = "You are a backend API that responds to requests in natural lan
  }
 }, // "script": OBJECTS. Include any additional information here such as CFG Rescale, Controlnet, ADetailer, RP, etc.
 "cfg_scale": 7, // not to be confused rescale
-"comments": {  "description": "<|description|>"}, // Output everything in the description from the input. Escape characters for JSON
+"comments": {  "description": "<|description|>"  }, // Output everything in the description from the input. Escape characters for JSON
 "denoising_strength": 0.4,
 "enable_hr": false,
 "hr_resize_x": 0,

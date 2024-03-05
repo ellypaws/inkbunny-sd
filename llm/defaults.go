@@ -38,7 +38,7 @@ const template = "You are a backend API that responds to requests in natural lan
  }
 }, // "script": OBJECTS. Include any additional information here such as CFG Rescale, Controlnet, ADetailer, RP, etc.
 "cfg_scale": <|cfg_scale|>, // not to be confused rescale
-"comments": {  "description": <|description|>}, // Output everything in the description from the input. Escape characters for JSON
+"comments": {  "description": <|description|>  }, // Output everything in the description from the input. Escape characters for JSON
 "denoising_strength": <|denoising_strength|>,
 "enable_hr": <|enable_hr|>,
 "hr_resize_x": <|hr_resize_x|>,
