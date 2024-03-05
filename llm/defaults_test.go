@@ -2,6 +2,7 @@ package llm
 
 import (
 	"github.com/ellypaws/inkbunny-sd/entities"
+	"strings"
 	"testing"
 )
 
@@ -42,15 +43,34 @@ const expected = "You are a backend API that responds to requests in natural lan
 }`
 
 func TestPrefillSystemDump(t *testing.T) {
-	message, err := PrefillSystemDump(entities.TextToImageRequest{})
+	alternateModel := "furryrock_V70"
+
+	t.Logf("Overriding model to %s", alternateModel)
+
+	message, err := PrefillSystemDump(entities.TextToImageRequest{
+		Steps:       50,
+		SamplerName: "DPM++ 2M Karras",
+		OverrideSettings: entities.Config{
+			SDModelCheckpoint: &alternateModel,
+			SDCheckpointHash:  "70b33002f4",
+		},
+		CFGScale:          12,
+		DenoisingStrength: 0.45,
+	})
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err)
 	}
 
-	if message.Content != expected {
-		t.Errorf("<| Expected |>\n\n```\n%s\n```\n\n<| Got |>\n\n```\n%s\n```", expected, message.Content)
-	}
+	newExpected := strings.ReplaceAll(expected, `"steps": 20,`, `"steps": 50,`)
+	newExpected = strings.ReplaceAll(newExpected, `"sampler_name": "UniPC",`, `"sampler_name": "DPM++ 2M Karras",`)
+	newExpected = strings.ReplaceAll(newExpected, `"sd_model_checkpoint": "EasyFluff",`, `"sd_model_checkpoint": "furryrock_V70",`)
+	newExpected = strings.ReplaceAll(newExpected, `"sd_checkpoint_hash": "f80ed3fee940"`, `"sd_checkpoint_hash": "70b33002f4"`)
+	newExpected = strings.ReplaceAll(newExpected, `"cfg_scale": 7,`, `"cfg_scale": 12,`)
+	newExpected = strings.ReplaceAll(newExpected, `"denoising_strength": 0.4,`, `"denoising_strength": 0.45,`)
 
+	if message.Content != newExpected {
+		t.Errorf("<| Expected |>\n\n```\n%s\n```\n\n<| Got |>\n\n```\n%s\n```", newExpected, message.Content)
+	}
 }
 
 func TestDefaultSystem(t *testing.T) {

@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/ellypaws/inkbunny-sd/entities"
 	"net/url"
@@ -76,12 +77,12 @@ func PrefillSystemDump(request entities.TextToImageRequest) (Message, error) {
 		HrUpscaler:        "R-ESRGAN 2x+",
 	}
 
-	data, err := r.Marshal()
+	data, err := request.Marshal()
 	if err != nil {
 		return Message{}, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	request, err = entities.UnmarshalTextToImageRequest(data)
+	err = json.Unmarshal(data, &r)
 	if err != nil {
 		return Message{}, fmt.Errorf("failed to unmarshal request: %w", err)
 	}
@@ -89,7 +90,7 @@ func PrefillSystemDump(request entities.TextToImageRequest) (Message, error) {
 	out := template
 
 	// use reflect to get json tags
-	v := reflect.ValueOf(request)
+	v := reflect.ValueOf(r)
 	out, err = replaceNestedFields(out, v)
 	if err != nil {
 		return Message{}, err
@@ -118,6 +119,9 @@ func replaceNestedFields(out string, v reflect.Value) (string, error) {
 			if exists {
 				// Replace the placeholder for the description in the template
 				out = strings.Replace(out, "<|description|>", format(description), -1)
+			} else {
+				// If the description is not present, add quotes to the placeholder
+				out = strings.Replace(out, "<|description|>", `"<|description|>"`, -1)
 			}
 			continue
 		}
