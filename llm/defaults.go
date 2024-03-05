@@ -102,9 +102,9 @@ func PrefillSystem(request entities.TextToImageRequest) Message {
 func write(content *strings.Builder, key string, value, def any, end string) {
 	content.WriteString(key)
 	if valueIsSet(value) {
-		format(content, value)
+		content.WriteString(format(value))
 	} else {
-		format(content, def)
+		content.WriteString(format(def))
 	}
 	content.WriteString(end)
 }
@@ -131,26 +131,30 @@ func valueIsSet(value any) bool {
 	}
 }
 
-func format(content *strings.Builder, value any) {
+func format(value any) string {
 	if value == nil {
-		content.WriteString("null")
-		return
+		return "null"
 	}
 	switch v := value.(type) {
-	case string, *string:
-		content.WriteString(fmt.Sprintf(`"%s"`, v))
+	case string:
+		return fmt.Sprintf(`"%s"`, v)
+	case *string:
+		if v == nil {
+			return ""
+		}
+		return fmt.Sprintf(`"%s"`, *v)
 	case int:
-		content.WriteString(strconv.Itoa(v))
+		return strconv.Itoa(v)
 	case int64:
-		content.WriteString(strconv.FormatInt(v, 10))
+		return strconv.FormatInt(v, 10)
 	case float64:
-		content.WriteString(strconv.FormatFloat(v, 'f', -1, 64))
+		return strconv.FormatFloat(v, 'f', -1, 64)
 	case bool:
-		content.WriteString(strconv.FormatBool(v))
+		return strconv.FormatBool(v)
 	case nil:
-		content.WriteString("null")
+		return "null"
 	default:
-		content.WriteString(fmt.Sprintf(`"%s"`, value))
+		return fmt.Sprintf(`"%s"`, value)
 	}
 }
 
