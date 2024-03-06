@@ -42,8 +42,10 @@ func RemoveBBCode(s string) string {
 	return bbCode.ReplaceAllString(s, "")
 }
 
-func ExtractAll(s string, reg map[string]*regexp.Regexp) map[string]string {
-	result := make(map[string]string)
+type ExtractResult map[string]string
+
+func ExtractAll(s string, reg map[string]*regexp.Regexp) ExtractResult {
+	result := make(ExtractResult)
 
 	for key, r := range reg {
 		result[key] = Extract(s, r)

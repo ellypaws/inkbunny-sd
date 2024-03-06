@@ -109,7 +109,7 @@ func main() {
 		log.Printf("Submission [%s] by [%s]: https://inkbunny.net/s/%s\n", submission.Title, submission.Username, submission.SubmissionID)
 	}
 
-	var results []map[string]string
+	var results []utils.ExtractResult
 	for _, submission := range details.Submissions {
 		if len(submission.Description) > 256 {
 			log.Printf("Title: %s\nDescription: %s ... |>\n", submission.Title, submission.Description[:256])
@@ -137,13 +137,10 @@ func main() {
 			"denoising": &request.DenoisingStrength,
 		}
 
-		for key, fieldPtr := range fieldsToSet {
-			if v, ok := result[key]; ok {
-				err := castStringToType(v, fieldPtr)
-				if err != nil {
-					log.Printf("Error casting %s to type: %v\n", key, err)
-				}
-			}
+		err := utils.ResultsToFields(result, fieldsToSet)
+		if err != nil {
+			log.Printf("Error setting fields: %v\n", err)
+			continue
 		}
 
 		request.Prompt = utils.ExtractPositivePrompt(details.Submissions[i].Description)

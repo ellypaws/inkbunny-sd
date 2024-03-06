@@ -1,13 +1,27 @@
-package main
+package utils
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 )
 
-// castStringToType dynamically casts a string to a field's type and assigns it.
-func castStringToType(s string, fieldPtr any) error {
+// ResultsToFields maps ExtractResult from ExtractAll to fields in a struct.
+func ResultsToFields(result ExtractResult, fieldsToSet map[string]any) error {
+	for key, fieldPtr := range fieldsToSet {
+		if v, ok := result[key]; ok {
+			err := CastStringToType(v, fieldPtr)
+			if err != nil {
+				return fmt.Errorf("error casting %s to type: %w", key, err)
+			}
+		}
+	}
+	return nil
+}
+
+// CastStringToType dynamically casts a string to a field's type and assigns it.
+func CastStringToType(s string, fieldPtr any) error {
 	if s == "" {
 		return nil
 	}
