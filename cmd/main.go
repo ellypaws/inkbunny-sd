@@ -215,8 +215,8 @@ func inferPrompt(maxRetries int, system *llm.Message, user llm.Message, host llm
 			continue
 		}
 
-		message := utils.ExtractJson(resp.Choices[0].Message.Content)
-		textToImage, err := entities.UnmarshalTextToImageRequest([]byte(message))
+		message := utils.ExtractJson([]byte(resp.Choices[0].Message.Content))
+		textToImage, err := entities.UnmarshalTextToImageRequest(message)
 		if err != nil {
 			log.Printf("Error unmarshalling text to image: %v, retrying (%d/%d)\n", err, i+1, maxRetries)
 			continue
@@ -227,7 +227,7 @@ func inferPrompt(maxRetries int, system *llm.Message, user llm.Message, host llm
 		}
 		out, _ = json.MarshalIndent(textToImage, "", "  ")
 		log.Printf("Successfully inferenced %d tokens with %d retries\n", resp.Usage.CompletionTokens, i)
-		log.Println(strings.ReplaceAll(message, "\n", ""))
+		log.Println(strings.ReplaceAll(string(message), "\n", ""))
 		break
 	}
 	return out

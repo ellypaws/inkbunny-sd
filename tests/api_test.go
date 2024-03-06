@@ -151,8 +151,8 @@ func TestPositivePrompt(t *testing.T) {
 			continue
 		}
 
-		message := utils.ExtractJson(resp.Choices[0].Message.Content)
-		textToImage, err = entities.UnmarshalTextToImageRequest([]byte(message))
+		message := utils.ExtractJson([]byte(resp.Choices[0].Message.Content))
+		textToImage, err = entities.UnmarshalTextToImageRequest(message)
 		if err != nil {
 			t.Logf("Error unmarshalling text to image: %v, retrying (%v/3)", err, i+1)
 			continue
@@ -179,4 +179,45 @@ func TestPositivePrompt(t *testing.T) {
 	}
 
 	t.Logf("Text to image: %s", bytes)
+}
+
+func TestExtractPrompt(t *testing.T) {
+	content := `{
+"steps": 20,
+"width": 512,
+"height": 768,
+"seed": 1234567890,
+"n_iter": 1,
+"batch_size": 1,
+"prompt": "Test prompt with \(extra\), stuff \"text\", that are
+
+hard to parse
+",
+"negative_prompt": "",
+"sampler_name": "UniPC",
+"override_settings": {
+   "sd_model_checkpoint": "EasyFluff",
+   "sd_checkpoint_hash": "f80ed3fee940"
+},
+"alwayson_scripts": {
+ "ADetailer": {
+    "args": []  // contains an "args" array with any type inside
+ }
+},
+"cfg_scale": 7,
+"comments": {  "description": "<|description|>" },
+"denoising_strength": 0.4,
+"enable_hr": false,
+"hr_resize_x": 0,
+"hr_resize_y": 0,
+"hr_scale": 2,
+"hr_second_pass_steps": 20,
+"hr_upscaler": "R-ESRGAN 2x+"
+}
+`
+	prompt := utils.ExtractJson([]byte(content))
+	_, err := entities.UnmarshalTextToImageRequest(prompt)
+	if err != nil {
+		t.Fatalf("Error unmarshalling text to image: %v", err)
+	}
 }
