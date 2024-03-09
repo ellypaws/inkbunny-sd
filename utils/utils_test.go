@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"testing"
 )
 
@@ -36,6 +37,30 @@ func TestExtractNegativeBackwards(t *testing.T) {
 
 func TestExtractNegativeForward(t *testing.T) {
 	t.Log(ExtractNegativeForward(sample))
+}
+
+func TestDescriptionHeuristics(t *testing.T) {
+	t2i, err := DescriptionHeuristics(sample)
+	if err != nil {
+		t.Fatalf("Expected no error, got %s", err)
+	}
+
+	bytes, _ := json.MarshalIndent(t2i, "", "  ")
+	t.Logf("TextToImageRequest: %v", string(bytes))
+}
+
+const testParameters = `(golden retriever, in a classroom, class, classroom, indoors, inside building, background blur)
+Negative prompt: deformityv6, bwu, dfc, ubbp, updn, ribcage
+Steps: 50, Sampler: DPM++ 2M Karras, CFG scale: 12, Seed: 581623237, Size: 768x1024, Model hash: 70b33002f4, Model: furryrock_V70, Denoising strength: 0.45, Hires upscale: 2, Hires steps: 15, Hires upscaler: 4x-UltraMix_Smooth, Version: v1.6.0-2-g4afaaf8a`
+
+func TestParameterHeuristics(t *testing.T) {
+	t2i, err := ParameterHeuristics(testParameters)
+	if err != nil {
+		t.Fatalf("Expected no error, got %s", err)
+	}
+
+	bytes, _ := json.MarshalIndent(t2i, "", "  ")
+	t.Logf("PNGInfo: %v", string(bytes))
 }
 
 func TestExtractAll(t *testing.T) {

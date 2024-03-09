@@ -21,6 +21,8 @@ var (
 		"version":    regexp.MustCompile(`(?i)version:? (?P<version>v[\w.-]+)`),
 	}
 
+	allParams = regexp.MustCompile(`\s*(\w[\w \-/]+):\s*("(?:\\.|[^\\"])+"|[^,]*)(?:,|$)`)
+
 	positivePattern = regexp.MustCompile(`(?is)(?:(?:primary |pos(?:itive)? )?prompts?:?)(.+)negative prompt:?`)
 	negativePattern = regexp.MustCompile(`(?is)(?:(?:|neg(?:ative)? )?prompts?:?)(.*?)(?:steps|sampler|model)`)
 	bbCode          = regexp.MustCompile(`\[\/?[\w=]+\]`)
@@ -52,10 +54,26 @@ func RemoveBBCode(s string) string {
 type ExtractResult map[string]string
 
 func ExtractAll(s string, reg map[string]*regexp.Regexp) ExtractResult {
-	result := make(ExtractResult)
+	var result = make(ExtractResult)
 
 	for key, r := range reg {
 		result[key] = Extract(s, r)
+	}
+
+	return result
+}
+
+// ExtractKeys extracts keys and values from a string using regex
+//
+//	`\s*(\w[\w \-/]+):\s*("(?:\\.|[^\\"])+"|[^,]*)(?:,|$)`
+//
+// [Key: value], [Key: value], [Key: "key: value, key:value"]
+func ExtractKeys(s string) ExtractResult {
+	var result = make(ExtractResult)
+
+	matches := allParams.FindAllStringSubmatch(s, -1)
+	for _, match := range matches {
+		result[match[1]] = match[2]
 	}
 
 	return result
