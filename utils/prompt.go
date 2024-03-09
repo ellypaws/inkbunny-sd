@@ -282,11 +282,11 @@ func TextToImageFields(request *entities.TextToImageRequest) map[string]any {
 		"Schedule rho":          &request.OverrideSettings.Rho,
 		"VAE Encoder":           &request.OverrideSettings.SDVaeEncodeMethod,
 		"VAE Decoder":           &request.OverrideSettings.SDVaeDecodeMethod,
-		//"FP8 weight":            &request.OverrideSettings.DisableWeightsAutoSwap, // TODO: this is a bool, but FP8 weight is a string e.g. "Disable"
-		//"Cache FP16 weight for LoRA": &request.OverrideSettings.SDVaeCheckpointCache, // TODO: this is a float64, but Cache FP16 weight for LoRA is a bool e.g. False
-		//"Emphasis": &request.OverrideSettings.EnableEmphasis, // TODO: this is a string, but Emphasis is a bool e.g. "Original"
-		//"Emphasis": &request.OverrideSettings.UseOldEmphasisImplementation, // TODO: this is a string, but Emphasis is a bool e.g. "Original"
-		//"Refiner switch by sampling steps": &request.OverrideSettings.HiresFixRefinerPass, // TODO: this is a string, but Refiner switch by sampling steps is a bool e.g. False
+		//"FP8 weight":                       &request.OverrideSettings.DisableWeightsAutoSwap,       // TODO: this is a bool, but FP8 weight is a string e.g. "Disable"
+		//"Cache FP16 weight for LoRA":       &request.OverrideSettings.SDVaeCheckpointCache,         // TODO: this is a float64, but Cache FP16 weight for LoRA is a bool e.g. False
+		//"Emphasis":                         &request.OverrideSettings.EnableEmphasis,               // TODO: this is a string, but Emphasis is a bool e.g. "Original"
+		//"Emphasis":                         &request.OverrideSettings.UseOldEmphasisImplementation, // TODO: this is a string, but Emphasis is a bool e.g. "Original"
+		//"Refiner switch by sampling steps": &request.OverrideSettings.HiresFixRefinerPass,          // TODO: this is a string, but Refiner switch by sampling steps is a bool e.g. False
 	}
 }
 
