@@ -63,20 +63,36 @@ func ExtractAll(s string, reg map[string]*regexp.Regexp) ExtractResult {
 	return result
 }
 
-// ExtractKeys extracts keys and values from a string using regex
+// ExtractKeys extracts keys and values from a string using regex.
+// Usually only the last line is passed here
 //
 //	`\s*(\w[\w \-/]+):\s*("(?:\\.|[^\\"])+"|[^,]*)(?:,|$)`
 //
 // [Key: value], [Key: value], [Key: "key: value, key:value"]
-func ExtractKeys(s string) ExtractResult {
+func ExtractKeys(line string) ExtractResult {
 	var result = make(ExtractResult)
 
-	matches := allParams.FindAllStringSubmatch(s, -1)
+	matches := allParams.FindAllStringSubmatch(line, -1)
 	for _, match := range matches {
 		result[match[1]] = match[2]
 	}
 
 	return result
+}
+
+// ExtractDefaultKeys can use a default mapping to store the results to.
+// Usually only the last line is passed here
+func ExtractDefaultKeys(line string, defaultResults ExtractResult) ExtractResult {
+	if defaultResults == nil {
+		defaultResults = make(ExtractResult)
+	}
+
+	matches := allParams.FindAllStringSubmatch(line, -1)
+	for _, match := range matches {
+		defaultResults[match[1]] = match[2]
+	}
+
+	return defaultResults
 }
 
 func Extract(s string, r *regexp.Regexp) string {

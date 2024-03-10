@@ -78,7 +78,7 @@ var IncompleteParameters = errors.New("incomplete parameters")
 // The function emulates the behavior of parse_generation_parameters in
 // https://github.com/AUTOMATIC1111/stable-diffusion-webui/blob/master/modules/infotext_utils.py#L233
 func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error) {
-	var request entities.TextToImageRequest
+	parameters = strings.TrimSpace(parameters)
 
 	lines := strings.Split(parameters, "\n")
 
@@ -88,124 +88,33 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 		}, IncompleteParameters
 	}
 
-	positive, negative := getPrompts(lines)
+	// Get positive and negative prompts excluding the last line, which is the extra parameters.
+	positive, negative := GetPrompts(lines[:len(lines)-1])
 
-	results := ExtractKeys(lines[len(lines)-1])
+	// Extract the parameters from the last line.
+	results := ExtractDefaultKeys(lines[len(lines)-1], DefaultResults())
 
 	if sizes, ok := results["Size"]; ok {
 		for i, size := range strings.Split(sizes, "x") {
 			switch i {
 			case 0:
-				request.Width, _ = strconv.Atoi(size)
+				results["Width"] = size
 			case 1:
-				request.Height, _ = strconv.Atoi(size)
+				results["Height"] = size
 			}
 		}
 	}
 
-	if _, ok := results["Clip skip"]; ok {
-		results["Clip skip"] = "1"
+	restoreOldHiresFixParams(results, false)
+
+	var request entities.TextToImageRequest
+	err := ResultsToFields(results, TextToImageFields(&request))
+	if err != nil {
+		return request, err
 	}
 
 	if hypernet, ok := results["Hypernet"]; ok {
 		positive.WriteString(fmt.Sprintf("<hypernet:%s:%s>", hypernet, results["Hypernet strength"]))
-	}
-
-	if _, ok := results["Hires resize-1"]; !ok {
-		results["Hires resize-1"] = "0"
-		results["Hires resize-2"] = "0"
-	}
-
-	if _, ok := results["Hires sampler"]; !ok {
-		results["Hires sampler"] = "Use same sampler"
-	}
-
-	if _, ok := results["Hires checkpoint"]; !ok {
-		results["Hires checkpoint"] = "Use same checkpoint"
-	}
-
-	if _, ok := results["Hires prompt"]; !ok {
-		results["Hires prompt"] = ""
-	}
-
-	if _, ok := results["Hires negative prompt"]; !ok {
-		results["Hires negative prompt"] = ""
-	}
-
-	if _, ok := results["Mask mode"]; !ok {
-		results["Mask mode"] = "Inpaint masked"
-	}
-
-	if _, ok := results["Masked content"]; !ok {
-		results["Masked content"] = "original"
-	}
-
-	if _, ok := results["Inpaint area"]; !ok {
-		results["Inpaint area"] = "Whole picture"
-	}
-
-	if _, ok := results["Masked area padding"]; !ok {
-		results["Masked area padding"] = "32"
-	}
-
-	restoreOldHiresFixParams(results, false)
-
-	if _, ok := results["RNG"]; !ok {
-		results["RNG"] = "GPU"
-	}
-
-	if _, ok := results["Schedule type"]; !ok {
-		results["Schedule type"] = "Automatic"
-	}
-
-	if _, ok := results["Schedule max sigma"]; !ok {
-		results["Schedule max sigma"] = "0"
-	}
-
-	if _, ok := results["Schedule min sigma"]; !ok {
-		results["Schedule min sigma"] = "0"
-	}
-
-	if _, ok := results["Schedule rho"]; !ok {
-		results["Schedule rho"] = "0"
-	}
-
-	if _, ok := results["VAE Encoder"]; !ok {
-		results["VAE Encoder"] = "Full"
-	}
-
-	if _, ok := results["VAE Decoder"]; !ok {
-		results["VAE Decoder"] = "Full"
-	}
-
-	if _, ok := results["FP8 weight"]; !ok {
-		results["FP8 weight"] = "Disable"
-	}
-
-	if _, ok := results["Cache FP16 weight for LoRA"]; !ok && results["FP8 weight"] != "Disable" {
-		results["Cache FP16 weight for LoRA"] = "False"
-	}
-
-	//promptAttention := parsePromptAttention(request.Prompt) + parsePromptAttention(request.NegativePrompt)
-
-	//var promptUsesEmphasis [][]string
-	//for _, p := range promptAttention {
-	//	if p[1] == 1.0 || p[0] == "BREAK" {
-	//		promptUsesEmphasis = append(promptUsesEmphasis, p)
-	//	}
-	//}
-
-	//if _, ok := results["Emphasis"]; !ok && promptUsesEmphasis {
-	//	results["Emphasis"] = "Original"
-	//}
-
-	if _, ok := results["Refiner switch by sampling steps"]; !ok {
-		results["Refiner switch by sampling steps"] = "False"
-	}
-
-	err := ResultsToFields(results, TextToImageFields(&request))
-	if err != nil {
-		return request, err
 	}
 
 	request.Prompt = positive.String()
@@ -223,14 +132,108 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 	return request, nil
 }
 
-// getPrompts returns the positive and negative prompts from the given lines.
+// DefaultResults returns the default key-value pairs for the parameters.
+func DefaultResults() ExtractResult {
+	var results = ExtractResult{
+		"Clip skip": "1",
+		//"Hires resize-1":                   "0",
+		//"Hires resize-2":                   "0",
+		"Hires sampler":    "Use same sampler",
+		"Hires checkpoint": "Use same checkpoint",
+		//"Hires prompt":                     "",
+		//"Hires negative prompt":            "",
+		"Mask mode": "Inpaint masked",
+		//"Masked content":                   "original",
+		//"Inpaint area":                     "Whole picture",
+		//"Masked area padding":              "32",
+		"RNG":           "GPU",
+		"Schedule type": "Automatic",
+		//"Schedule max sigma":               "0",
+		//"Schedule min sigma":               "0",
+		//"Schedule rho":                     "0",
+		//"VAE Encoder":                      "Full",
+		//"VAE Decoder":                      "Full",
+		//"FP8 weight":                       "Disable",
+		//"Cache FP16 weight for LoRA":       "False",
+		//"Refiner switch by sampling steps": "False",
+	}
+
+	//if hypernet, ok := results["Hypernet"]; ok {
+	//	positive.WriteString(fmt.Sprintf("<hypernet:%s:%s>", hypernet, results["Hypernet strength"]))
+	//}
+
+	//promptAttention := parsePromptAttention(request.Prompt) + parsePromptAttention(request.NegativePrompt)
+
+	//var promptUsesEmphasis [][]string
+	//for _, p := range promptAttention {
+	//	if p[1] == 1.0 || p[0] == "BREAK" {
+	//		promptUsesEmphasis = append(promptUsesEmphasis, p)
+	//	}
+	//}
+
+	//if _, ok := results["Emphasis"]; !ok && promptUsesEmphasis {
+	//	results["Emphasis"] = "Original"
+	//}
+
+	return results
+}
+
+// AllDefaultResults returns the default key-value pairs for the parameters.
+// This is more faithful to the original implementation in the webui.
+func AllDefaultResults() ExtractResult {
+	var results = ExtractResult{
+		"Clip skip":                        "1",
+		"Hires resize-1":                   "0",
+		"Hires resize-2":                   "0",
+		"Hires sampler":                    "Use same sampler",
+		"Hires checkpoint":                 "Use same checkpoint",
+		"Hires prompt":                     "",
+		"Hires negative prompt":            "",
+		"Mask mode":                        "Inpaint masked",
+		"Masked content":                   "original",
+		"Inpaint area":                     "Whole picture",
+		"Masked area padding":              "32",
+		"RNG":                              "GPU",
+		"Schedule type":                    "Automatic",
+		"Schedule max sigma":               "0",
+		"Schedule min sigma":               "0",
+		"Schedule rho":                     "0",
+		"VAE Encoder":                      "Full",
+		"VAE Decoder":                      "Full",
+		"FP8 weight":                       "Disable",
+		"Cache FP16 weight for LoRA":       "False",
+		"Refiner switch by sampling steps": "False",
+	}
+
+	//if hypernet, ok := results["Hypernet"]; ok {
+	//	positive.WriteString(fmt.Sprintf("<hypernet:%s:%s>", hypernet, results["Hypernet strength"]))
+	//}
+
+	//promptAttention := parsePromptAttention(request.Prompt) + parsePromptAttention(request.NegativePrompt)
+
+	//var promptUsesEmphasis [][]string
+	//for _, p := range promptAttention {
+	//	if p[1] == 1.0 || p[0] == "BREAK" {
+	//		promptUsesEmphasis = append(promptUsesEmphasis, p)
+	//	}
+	//}
+
+	//if _, ok := results["Emphasis"]; !ok && promptUsesEmphasis {
+	//	results["Emphasis"] = "Original"
+	//}
+
+	return results
+}
+
+// GetPrompts returns the positive and negative prompts from the given lines.
 // It goes line by line until it finds the negative prompt, then it returns the positive and negative prompts.
 // Everything before the negative prompt is considered the positive prompt.
-// The last line is not included since it's the extra parameters.
-func getPrompts(lines []string) (strings.Builder, strings.Builder) {
+// The last line should not be included since it's the extra parameters.
+// It returns a strings.Builder, use the String() method to get the result.
+func GetPrompts(lines []string) (strings.Builder, strings.Builder) {
 	var positive, negative strings.Builder
 	var negativeFound bool
-	for _, line := range lines[:len(lines)-1] {
+	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		switch {
 		case strings.HasPrefix(line, "Negative prompt:"):
@@ -261,6 +264,8 @@ func TextToImageFields(request *entities.TextToImageRequest) map[string]any {
 		"CFG scale":             &request.CFGScale,
 		"Seed":                  &request.Seed,
 		"Denoising strength":    &request.DenoisingStrength,
+		"Width":                 &request.Width,
+		"Height":                &request.Height,
 		"Model":                 &request.OverrideSettings.SDModelCheckpoint,
 		"Model hash":            &request.OverrideSettings.SDCheckpointHash,
 		"VAE":                   &request.OverrideSettings.SDVae,
