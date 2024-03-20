@@ -164,3 +164,40 @@ func MonitorTokens(responseChan <-chan *Response) {
 	}
 	fmt.Printf("\nStream ended.\n")
 }
+
+type AvailableModels struct {
+	Data   []Datum `json:"data"`
+	Object string  `json:"object"`
+}
+
+type Datum struct {
+	ID         string       `json:"id"`
+	Object     string       `json:"object"`
+	OwnedBy    string       `json:"owned_by"`
+	Permission []Permission `json:"permission"`
+}
+
+type Permission struct{}
+
+func (c Config) AvailableModels() ([]string, error) {
+	resp, err := http.Get(c.Endpoint.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("request failed with status code %d", resp.StatusCode)
+	}
+
+	var models AvailableModels
+	if err := json.NewDecoder(resp.Body).Decode(&models); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
+
+	var modelIDs []string
+	for _, model := range models.Data {
+		modelIDs = append(modelIDs, model.ID)
+	}
+
+	return modelIDs, nil
+}

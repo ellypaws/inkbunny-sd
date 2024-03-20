@@ -28,6 +28,7 @@ const (
 
 type Request struct {
 	Messages      []Message      `json:"messages"`
+	Model         string         `json:"model,omitempty"`
 	Temperature   float64        `json:"temperature"`
 	MaxTokens     int64          `json:"max_tokens"`
 	Stream        bool           `json:"stream"`
