@@ -19,7 +19,9 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/ellypaws/inkbunny-sd/utils"
 	"log"
 	"os"
 	"strings"
@@ -71,6 +73,8 @@ func parseDataset(text, json map[string][]byte) map[string][]byte {
 		out.WriteString("### Response:\n")
 		if j, ok := json[name]; ok {
 			out.Write(j)
+		} else if strings.Contains(string(name), "AutoSnep") {
+			out.Write(autoSnep(name + ".txt"))
 		}
 		dataset[name] = out.Bytes()
 	}
@@ -108,6 +112,20 @@ func getFiles() (text, json map[string][]byte) {
 		}
 	}
 	return text, json
+}
+
+func autoSnep(file string) []byte {
+	request, err := utils.FileToRequests(file, utils.AutoSnep)
+	if err != nil {
+		return nil
+	}
+
+	marshal, err := json.MarshalIndent(request, "", " ")
+	if err != nil {
+		return nil
+	}
+
+	return marshal
 }
 
 const commonInstruction = `###Instruction: 
