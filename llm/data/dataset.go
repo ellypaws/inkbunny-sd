@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/ellypaws/inkbunny-sd/entities"
 	"github.com/ellypaws/inkbunny-sd/utils"
 	"log"
 	"os"
@@ -65,16 +66,48 @@ func parseDataset(text, json map[string][]byte) map[string][]byte {
 		out.WriteString(commonInstruction)
 		out.WriteString("### Input:\n")
 		out.WriteString("The file name is: ")
+
+		// Because AutoSnep already has standardized txt files, opt to split each file separately
+		if strings.Contains(name, "AutoSnep") {
+			inputResponse := autoSnep(string(input))
+			if inputResponse == nil {
+				out.WriteString(name)
+				out.WriteString("\n\n")
+
+				out.Write(input)
+			} else {
+				out := out.Bytes()
+				for name, s := range inputResponse {
+					var snep bytes.Buffer
+					snep.Write(out)
+					snep.WriteString(name)
+					snep.WriteString("\n\n")
+
+					if s.Input == "" {
+						continue
+					}
+
+					snep.WriteString(s.Input)
+
+					snep.WriteString("\n\n")
+					snep.WriteString("### Response:\n")
+
+					snep.Write(s.Response)
+					dataset[name] = snep.Bytes()
+				}
+				continue
+			}
+		}
+
 		out.WriteString(name)
 		out.WriteString("\n\n")
+
 		out.Write(input)
 
 		out.WriteString("\n\n")
 		out.WriteString("### Response:\n")
 		if j, ok := json[name]; ok {
 			out.Write(j)
-		} else if strings.Contains(string(name), "AutoSnep") {
-			out.Write(autoSnep(name + ".txt"))
 		}
 		dataset[name] = out.Bytes()
 	}
@@ -114,18 +147,49 @@ func getFiles() (text, json map[string][]byte) {
 	return text, json
 }
 
-func autoSnep(file string) []byte {
-	request, err := utils.FileToRequests(file, utils.AutoSnep)
+type InputResponse struct {
+	Input    string
+	Response []byte
+}
+
+// autoSnep returns the split AutoSnep files as a map with the corresponding json
+func autoSnep(text string) map[string]InputResponse {
+	params, err := utils.AutoSnep(text)
 	if err != nil {
 		return nil
 	}
 
-	marshal, err := json.MarshalIndent(request, "", " ")
-	if err != nil {
+	if params == nil {
 		return nil
 	}
 
-	return marshal
+	request := utils.ParseParams(params)
+	if request == nil {
+		return nil
+	}
+
+	var out map[string]InputResponse
+	for name, r := range request {
+		marshal, err := json.MarshalIndent(map[string]entities.TextToImageRequest{name: r}, "", "  ")
+		if err != nil {
+			continue
+		}
+		if out == nil {
+			out = make(map[string]InputResponse)
+		}
+		s := InputResponse{
+			Response: marshal,
+		}
+		if chunk, ok := params[name]; ok {
+			if p, ok := chunk["parameters"]; ok {
+				s.Input = p
+			}
+		}
+		if s.Input != "" {
+			out[name] = s
+		}
+	}
+	return out
 }
 
 const commonInstruction = `###Instruction: 
@@ -136,7 +200,7 @@ IMPORTANT: Do not include comments, only output the JSON object.
 Sometimes there's more than one prompt, so intelligently recognize this.
 Keep loras as is <lora:MODELNAME:weight>
 Use the following JSON format: 
-{
+{"filename": {
 "steps": <|steps|>,
 "width": <|width|>,
 "height": <|height|>,
@@ -162,7 +226,7 @@ Use the following JSON format:
 "hr_scale": <|hr_scale|>, // use 2 if not present
 "hr_second_pass_steps": <|hr_second_pass_steps|>, // use the same value as steps if not present
 "hr_upscaler": <|hr_upscaler|> // default is Latent
-}
+}}
 
 `
 
@@ -174,7 +238,7 @@ IMPORTANT: Do not include comments, only output the JSON object.
 Sometimes there's more than one prompt, so intelligently recognize this.
 Keep loras as is <lora:MODELNAME:weight>
 Use the following JSON format: 
-{
+{"filename": {
 "steps": <|steps|>,
 "width": <|width|>,
 "height": <|height|>,
@@ -200,14 +264,14 @@ Use the following JSON format:
 "hr_scale": <|hr_scale|>, // use 2 if not present
 "hr_second_pass_steps": <|hr_second_pass_steps|>, // use the same value as steps if not present
 "hr_upscaler": <|hr_upscaler|> // default is Latent
-}
+}}
 
 ### Input:
 {example['input']}
 
 ### Response:
-[
- {
+{
+"filename": {
  "steps": 20,
  "width": 512,
  "height": 512,
@@ -234,4 +298,4 @@ Use the following JSON format:
  "hr_second_pass_steps": 20, 
  "hr_upscaler": "<|hr_upscaler|>"
  }
-]`
+}`
