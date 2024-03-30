@@ -2,24 +2,37 @@ package utils
 
 import (
 	"bufio"
+	"errors"
 	"github.com/ellypaws/inkbunny-sd/entities"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
 type Params map[string]PNGChunk
 type PNGChunk map[string]string
 
-type Processor func(string) (Params, error)
+type Config struct {
+	Text         string
+	KeyCondition func(string) bool
+	Filename     string
+}
+
+type Processor func(...func(*Config)) (Params, error)
+
+const Parameters = "parameters"
 
 // AutoSnep is a Processor that parses yaml like raw txt where each two spaces is a new dict
 // It's mostly seen in multi-chunk parameter output from AutoSnep
-func AutoSnep(text string) (Params, error) {
+func AutoSnep(opts ...func(*Config)) (Params, error) {
+	var c Config
+	for _, f := range opts {
+		f(&c)
+	}
 	var chunks Params = make(Params)
-	scanner := bufio.NewScanner(strings.NewReader(text))
+	scanner := bufio.NewScanner(strings.NewReader(c.Text))
 
-	const parameters = "parameters"
 	const Software = "Software"
 
 	var png string
@@ -32,8 +45,8 @@ func AutoSnep(text string) (Params, error) {
 		switch indentLevel {
 		case 0:
 			if strings.HasSuffix(line, ":") {
-				png = strings.TrimSuffix(line, ":")
-				chunks[png] = PNGChunk{}
+				png = "AutoSnep_" + strings.TrimSuffix(line, ":")
+				chunks[png] = make(PNGChunk)
 			}
 		case 2: // PNG text chunks:
 			if strings.TrimSpace(line) == "PNG text chunks:" {
@@ -41,19 +54,13 @@ func AutoSnep(text string) (Params, error) {
 			}
 		case 4: // parameters:
 			key = strings.TrimSpace(strings.TrimSuffix(line, ":"))
-			//switch {
-			//case strings.Contains(line, "parameters:"):
-			//	currentKey = parameters
-			//case strings.Contains(line, "Software:"):
-			//	currentKey = Software
-			//}
 		case 6:
 			if len(chunks[png][key]) > 0 {
 				chunks[png][key] += "\n"
 			}
 			chunks[png][key] += line[6:]
 		default:
-			// Handle other cases as needed, e.g., deeper indentations or different keys
+
 		}
 	}
 
@@ -64,10 +71,99 @@ func AutoSnep(text string) (Params, error) {
 	return chunks, nil
 }
 
+func UseDruge() func(*Config) {
+	return func(c *Config) {
+		c.KeyCondition = func(line string) bool {
+			_, err := strconv.Atoi(line)
+			return err == nil
+		}
+		c.Filename = "druge_"
+	}
+}
+
+func UseArtie() func(*Config) {
+	return func(c *Config) {
+		c.KeyCondition = func(line string) bool {
+			return strings.HasSuffix(line, "Image")
+		}
+		c.Filename = "artiedragon_"
+	}
+}
+
+func WithString(s string) func(*Config) {
+	return func(c *Config) {
+		c.Text = s
+	}
+}
+
+func WithBytes(b []byte) func(*Config) {
+	return func(c *Config) {
+		c.Text = string(b)
+	}
+}
+
+func WithConfig(config Config) func(*Config) {
+	return func(c *Config) {
+		*c = config
+	}
+}
+
+func WithFilename(filename string) func(*Config) {
+	return func(c *Config) {
+		c.Filename = filename
+	}
+}
+
+func Common(opts ...func(*Config)) (Params, error) {
+	var c Config
+	for _, f := range opts {
+		f(&c)
+	}
+	if c.KeyCondition == nil {
+		return nil, errors.New("condition for key is not set")
+	}
+	var chunks Params = make(Params)
+	scanner := bufio.NewScanner(strings.NewReader(c.Text))
+
+	var key string
+	var foundNegative bool
+	for scanner.Scan() {
+		line := scanner.Text()
+		if foundNegative {
+			chunks[key][Parameters] += "\n" + line
+			foundNegative = false
+			key = ""
+			continue
+		}
+		if c.KeyCondition(line) {
+			key = c.Filename + line
+			chunks[key] = make(PNGChunk)
+			continue
+		}
+		if len(key) == 0 {
+			continue
+		}
+		if len(line) == 0 {
+			continue
+		}
+		if strings.HasPrefix(line, "Negative Prompt:") {
+			foundNegative = true
+			chunks[key][Parameters] += "\n" + line
+			continue
+		}
+		if len(chunks[key][Parameters]) > 0 {
+			chunks[key][Parameters] += "\n"
+		}
+		chunks[key][Parameters] += line
+	}
+
+	return chunks, nil
+}
+
 func ParseParams(p Params) map[string]entities.TextToImageRequest {
 	var request map[string]entities.TextToImageRequest
 	for file, chunk := range p {
-		if params, ok := chunk["parameters"]; ok {
+		if params, ok := chunk[Parameters]; ok {
 			r, err := ParameterHeuristics(params)
 			if err != nil {
 				continue
@@ -81,8 +177,8 @@ func ParseParams(p Params) map[string]entities.TextToImageRequest {
 	return request
 }
 
-func FileToRequests(file string, processor Processor) (map[string]entities.TextToImageRequest, error) {
-	p, err := fileToParams(file, processor)
+func FileToRequests(file string, processor Processor, opts ...func(*Config)) (map[string]entities.TextToImageRequest, error) {
+	p, err := fileToParams(file, processor, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,12 +186,14 @@ func FileToRequests(file string, processor Processor) (map[string]entities.TextT
 }
 
 // fileToParams reads the file and returns the params using a Processor
-func fileToParams(file string, processor Processor) (Params, error) {
+func fileToParams(file string, processor Processor, opts ...func(*Config)) (Params, error) {
 	f, err := fileToBytes(file)
 	if err != nil {
 		return nil, err
 	}
-	return processor(string(f))
+	opts = append(opts, WithFilename(file))
+	opts = append(opts, WithBytes(f))
+	return processor(opts...)
 }
 
 // fileToBytes reads the file and returns the content as a byte slice

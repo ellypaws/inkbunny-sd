@@ -65,42 +65,48 @@ func parseDataset(text, json map[string][]byte) map[string][]byte {
 		var out bytes.Buffer
 		out.WriteString(commonInstruction)
 		out.WriteString("### Input:\n")
-		out.WriteString("The file name is: ")
+		out.WriteString(`The file name is: "`)
 
-		// Because AutoSnep already has standardized txt files, opt to split each file separately
-		if strings.Contains(name, "AutoSnep") {
-			inputResponse := autoSnep(string(input))
-			if inputResponse == nil {
-				out.WriteString(name)
-				out.WriteString("\n\n")
-
-				out.Write(input)
-			} else {
+		// Because some artists already have standardized txt files, opt to split each file separately
+		autoSnep := strings.Contains(name, "_AutoSnep_")
+		druge := strings.Contains(name, "_druge_")
+		artieDragon := strings.Contains(name, "_artiedragon_")
+		if autoSnep || druge || artieDragon {
+			var inputResponse map[string]InputResponse
+			switch {
+			case autoSnep:
+				inputResponse = mapParams(utils.AutoSnep, utils.WithBytes(input))
+			case druge:
+				inputResponse = mapParams(utils.Common, utils.WithBytes(input), utils.UseDruge())
+			default:
+				inputResponse = mapParams(utils.Common, utils.WithBytes(input), utils.UseArtie())
+			}
+			if inputResponse != nil {
 				out := out.Bytes()
 				for name, s := range inputResponse {
-					var snep bytes.Buffer
-					snep.Write(out)
-					snep.WriteString(name)
-					snep.WriteString("\n\n")
+					var multi bytes.Buffer
+					multi.Write(out)
+					multi.WriteString(name)
+					multi.WriteString("\"\n\n")
 
 					if s.Input == "" {
 						continue
 					}
 
-					snep.WriteString(s.Input)
+					multi.WriteString(s.Input)
 
-					snep.WriteString("\n\n")
-					snep.WriteString("### Response:\n")
+					multi.WriteString("\n\n")
+					multi.WriteString("### Response:\n")
 
-					snep.Write(s.Response)
-					dataset[name] = snep.Bytes()
+					multi.Write(s.Response)
+					dataset[name] = multi.Bytes()
 				}
 				continue
 			}
 		}
 
 		out.WriteString(name)
-		out.WriteString("\n\n")
+		out.WriteString("\"\n\n")
 
 		out.Write(input)
 
@@ -152,9 +158,9 @@ type InputResponse struct {
 	Response []byte
 }
 
-// autoSnep returns the split AutoSnep files as a map with the corresponding json
-func autoSnep(text string) map[string]InputResponse {
-	params, err := utils.AutoSnep(text)
+// mapParams returns the split params files as a map with the corresponding json
+func mapParams(processor utils.Processor, opts ...func(*utils.Config)) map[string]InputResponse {
+	params, err := processor(opts...)
 	if err != nil {
 		return nil
 	}
@@ -181,7 +187,7 @@ func autoSnep(text string) map[string]InputResponse {
 			Response: marshal,
 		}
 		if chunk, ok := params[name]; ok {
-			if p, ok := chunk["parameters"]; ok {
+			if p, ok := chunk[utils.Parameters]; ok {
 				s.Input = p
 			}
 		}

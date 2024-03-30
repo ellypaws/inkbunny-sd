@@ -10,7 +10,7 @@ import (
 var file []byte
 
 func TestAutoSnep(t *testing.T) {
-	params, err := AutoSnep(string(file))
+	params, err := AutoSnep(WithBytes(file))
 	if err != nil {
 		t.Error(err)
 	}
@@ -18,7 +18,7 @@ func TestAutoSnep(t *testing.T) {
 }
 
 func TestParseParams(t *testing.T) {
-	params, err := AutoSnep(string(file))
+	params, err := AutoSnep(WithBytes(file))
 	if err != nil {
 		t.Error(err)
 	}
