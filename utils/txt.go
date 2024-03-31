@@ -14,9 +14,10 @@ type Params map[string]PNGChunk
 type PNGChunk map[string]string
 
 type Config struct {
-	Text         string
-	KeyCondition func(string) bool
-	Filename     string
+	Text          string
+	KeyCondition  func(string) bool
+	SkipCondition func(string) bool
+	Filename      string
 }
 
 type Processor func(...func(*Config)) (Params, error)
@@ -90,6 +91,19 @@ func UseArtie() func(*Config) {
 	}
 }
 
+func UseAIBean() func(*Config) {
+	return func(c *Config) {
+		c.KeyCondition = func(line string) bool {
+			_, err := strconv.Atoi(line)
+			return err == nil
+		}
+		c.Filename = "AIBean_"
+		c.SkipCondition = func(line string) bool {
+			return line == "parameters"
+		}
+	}
+}
+
 func WithString(s string) func(*Config) {
 	return func(c *Config) {
 		c.Text = s
@@ -114,6 +128,12 @@ func WithFilename(filename string) func(*Config) {
 	}
 }
 
+func WithKeyCondition(f func(string) bool) func(*Config) {
+	return func(c *Config) {
+		c.KeyCondition = f
+	}
+}
+
 func Common(opts ...func(*Config)) (Params, error) {
 	var c Config
 	for _, f := range opts {
@@ -129,6 +149,9 @@ func Common(opts ...func(*Config)) (Params, error) {
 	var foundNegative bool
 	for scanner.Scan() {
 		line := scanner.Text()
+		if c.SkipCondition != nil && c.SkipCondition(line) {
+			continue
+		}
 		if foundNegative {
 			chunks[key][Parameters] += "\n" + line
 			foundNegative = false

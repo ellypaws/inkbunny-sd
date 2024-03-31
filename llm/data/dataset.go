@@ -38,7 +38,7 @@ const empty = `###Instruction:
 
 func main() {
 	text, json := getFiles()
-	dataset := parseDataset(text, json)
+	dataset := ParseDataset(text, json)
 
 	for name, data := range dataset {
 		if _, err := os.Stat("dataset"); os.IsNotExist(err) {
@@ -57,9 +57,11 @@ func main() {
 	}
 }
 
-// parseDataset takes in a map of text and json files and returns a map of the combined data
+type NameContent map[string][]byte
+
+// ParseDataset takes in a map of text and json files and returns a map of the combined data
 // It uses the commonInstruction as a base and appends the input and response to it following completeSample
-func parseDataset(text, json map[string][]byte) map[string][]byte {
+func ParseDataset(text, json NameContent) map[string][]byte {
 	var dataset = make(map[string][]byte)
 	for name, input := range text {
 		var out bytes.Buffer
@@ -70,16 +72,26 @@ func parseDataset(text, json map[string][]byte) map[string][]byte {
 		// Because some artists already have standardized txt files, opt to split each file separately
 		autoSnep := strings.Contains(name, "_AutoSnep_")
 		druge := strings.Contains(name, "_druge_")
+		aiBean := strings.Contains(name, "_AIBean_")
 		artieDragon := strings.Contains(name, "_artiedragon_")
-		if autoSnep || druge || artieDragon {
+		picker52578 := strings.Contains(name, "_picker52578_")
+		if autoSnep || druge || aiBean || artieDragon || picker52578 {
 			var inputResponse map[string]InputResponse
 			switch {
 			case autoSnep:
 				inputResponse = mapParams(utils.AutoSnep, utils.WithBytes(input))
 			case druge:
 				inputResponse = mapParams(utils.Common, utils.WithBytes(input), utils.UseDruge())
-			default:
+			case aiBean:
+				inputResponse = mapParams(utils.Common, utils.WithBytes(input), utils.UseAIBean())
+			case artieDragon:
 				inputResponse = mapParams(utils.Common, utils.WithBytes(input), utils.UseArtie())
+			case picker52578:
+				inputResponse = mapParams(
+					utils.Common,
+					utils.WithBytes(input),
+					utils.WithFilename("picker52578_"),
+					utils.WithKeyCondition(func(line string) bool { return strings.HasPrefix(line, "File Name") }))
 			}
 			if inputResponse != nil {
 				out := out.Bytes()
