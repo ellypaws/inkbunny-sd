@@ -83,6 +83,7 @@ type TextToImageRequest struct {
 	SamplerIndex                      *string           `json:"sampler_index,omitempty"`
 	SamplerName                       string            `json:"sampler_name,omitempty"`
 	SaveImages                        *bool             `json:"save_images,omitempty"`
+	Scheduler                         *string           `json:"scheduler,omitempty"`
 	ScriptArgs                        []string          `json:"script_args,omitempty"`
 	ScriptName                        *string           `json:"script_name,omitempty"`
 	Seed                              int64             `json:"seed,omitempty"`

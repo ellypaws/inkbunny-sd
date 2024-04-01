@@ -255,4 +255,21 @@ type Config struct {
 	DisableAllExtensions                  string   `json:"disable_all_extensions,omitempty"`
 	RestoreConfigStateFile                string   `json:"restore_config_state_file,omitempty"`
 	SDCheckpointHash                      string   `json:"sd_checkpoint_hash,omitempty"`
+	// Downcast model alphas_cumprod to fp16 before sampling.
+	// [For reproducing old seeds].
+	// Set to true to use the old behavior.
+	//
+	// -----
+	//
+	// 1.8.0 (dev: 1.7.0-225) [2024-01-01] - zero terminal SNR noise schedule option
+	//
+	// 	Slightly changes all image generation.
+	//	The PR changes alphas_cumprod to be never be fp16 unless the backwards compatibility option is enabled.
+	//	Backwards compatibility option is "Downcast model alphas_cumprod to fp16 before sampling",
+	//	and it's automatically enabled when restoring parameters from old pictures
+	//	(as long as they have Version: ... in infotext).
+	//
+	// [For reproducing old seeds]: https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Seed-breaking-changes#180-dev-170-225-2024-01-01---zero-terminal-snr-noise-schedule-option
+	// [2024-01-01]: https://github.com/AUTOMATIC1111/stable-diffusion-webui/pull/14145
+	DowncastAlphasCumprodToFP16 bool `json:"use_downcasted_alpha_bar,omitempty"`
 }
