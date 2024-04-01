@@ -110,6 +110,15 @@ func UseAIBean() func(*Config) {
 	}
 }
 
+func UseFairyGarden() func(*Config) {
+	return func(c *Config) {
+		c.KeyCondition = func(line string) bool {
+			return strings.HasPrefix(line, "photo")
+		}
+		c.Filename = "fairygarden_"
+	}
+}
+
 func WithString(s string) func(*Config) {
 	return func(c *Config) {
 		c.Text = s
@@ -238,7 +247,8 @@ func ParseDataset(text, json NameContent) map[string][]byte {
 		aiBean := strings.Contains(name, "_AIBean_")
 		artieDragon := strings.Contains(name, "_artiedragon_")
 		picker52578 := strings.Contains(name, "_picker52578_")
-		if autoSnep || druge || aiBean || artieDragon || picker52578 {
+		fairyGarden := strings.Contains(name, "_fairygarden_")
+		if autoSnep || druge || aiBean || artieDragon || picker52578 || fairyGarden {
 			var inputResponse map[string]InputResponse
 			switch {
 			case autoSnep:
@@ -255,6 +265,12 @@ func ParseDataset(text, json NameContent) map[string][]byte {
 					WithBytes(input),
 					WithFilename("picker52578_"),
 					WithKeyCondition(func(line string) bool { return strings.HasPrefix(line, "File Name") }))
+			case fairyGarden:
+				inputResponse = MapParams(
+					Common,
+					// prepend "photo 1" to the input in case it's missing
+					WithBytes(bytes.Join([][]byte{[]byte("photo 1"), input}, []byte("\n"))),
+					UseFairyGarden())
 			}
 			if inputResponse != nil {
 				out := out.Bytes()
