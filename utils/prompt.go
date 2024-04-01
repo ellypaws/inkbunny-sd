@@ -107,6 +107,34 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 
 	restoreOldHiresFixParams(results, false)
 
+	if version, ok := results["Version"]; ok {
+		if !strings.HasPrefix(version, "v") {
+			results["Version"] = "v" + version
+		}
+		// Not used for now and should manually add a "Schedule type" if version of local Stable Diffusion is >= 1.7.0
+		// semver is still not in standard go library, avoid using it for now
+		// Check if the version is less than 1.7.0 then set "Downcast to fp16" to true'
+		//if semver.Compare(version, "v1.7.0-225") < 0 {
+		//	results["Downcast to fp16"] = "True"
+		//} else {
+		//	if sampler, ok := results["Sampler"]; ok {
+		//		for _, schedulers := range []string{
+		//			"Uniform",
+		//			"Karras",
+		//			"Exponential",
+		//			"Polyexponential",
+		//			"SGM Uniform",
+		//		} {
+		//			if strings.HasSuffix(sampler, schedulers) {
+		//				results["Sampler"] = strings.TrimSuffix(sampler, schedulers)
+		//				results["Schedule type"] = schedulers
+		//				break
+		//			}
+		//		}
+		//	}
+		//}
+	}
+
 	var request entities.TextToImageRequest
 	err := ResultsToFields(results, TextToImageFields(&request))
 	if err != nil {
@@ -281,12 +309,14 @@ func TextToImageFields(request *entities.TextToImageRequest) map[string]any {
 		"Hires prompt":          &request.HrPrompt,
 		"Hires negative prompt": &request.HrNegativePrompt,
 		"RNG":                   &request.OverrideSettings.RandnSource,
-		"Schedule type":         &request.OverrideSettings.KSchedType,
+		"KScheduler":            &request.OverrideSettings.KSchedType,
+		"Schedule type":         &request.Scheduler, // For 1.8.0 and above
 		"Schedule max sigma":    &request.OverrideSettings.SigmaMax,
 		"Schedule min sigma":    &request.OverrideSettings.SigmaMin,
 		"Schedule rho":          &request.OverrideSettings.Rho,
 		"VAE Encoder":           &request.OverrideSettings.SDVaeEncodeMethod,
 		"VAE Decoder":           &request.OverrideSettings.SDVaeDecodeMethod,
+		"Downcast to fp16":      &request.OverrideSettings.DowncastAlphasCumprodToFP16,
 		//"FP8 weight":                       &request.OverrideSettings.DisableWeightsAutoSwap,       // TODO: this is a bool, but FP8 weight is a string e.g. "Disable"
 		//"Cache FP16 weight for LoRA":       &request.OverrideSettings.SDVaeCheckpointCache,         // TODO: this is a float64, but Cache FP16 weight for LoRA is a bool e.g. False
 		//"Emphasis":                         &request.OverrideSettings.EnableEmphasis,               // TODO: this is a string, but Emphasis is a bool e.g. "Original"
