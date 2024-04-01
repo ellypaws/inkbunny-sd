@@ -24,7 +24,11 @@ type Config struct {
 
 type Processor func(...func(*Config)) (Params, error)
 
-const Parameters = "parameters"
+const (
+	Parameters     = "parameters"
+	Postprocessing = "postprocessing"
+	Extras         = "extras"
+)
 
 // AutoSnep is a Processor that parses yaml like raw txt where each two spaces is a new dict
 // It's mostly seen in multi-chunk parameter output from AutoSnep
@@ -149,6 +153,7 @@ func Common(opts ...func(*Config)) (Params, error) {
 
 	var key string
 	var foundNegative bool
+	var extra string
 	for scanner.Scan() {
 		line := scanner.Text()
 		if c.SkipCondition != nil && c.SkipCondition(line) {
@@ -174,6 +179,19 @@ func Common(opts ...func(*Config)) (Params, error) {
 		if strings.HasPrefix(line, "Negative Prompt:") {
 			foundNegative = true
 			chunks[key][Parameters] += "\n" + line
+			continue
+		}
+		if len(extra) > 0 {
+			chunks[key][extra] += line
+			extra = ""
+			continue
+		}
+		switch line {
+		case Postprocessing:
+			extra = Postprocessing
+			continue
+		case Extras:
+			extra = Extras
 			continue
 		}
 		if len(chunks[key][Parameters]) > 0 {
