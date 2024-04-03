@@ -6,7 +6,10 @@
 
 package entities
 
-import "encoding/json"
+import (
+	"encoding/base64"
+	"encoding/json"
+)
 
 func UnmarshalTaggerInterrogate(data []byte) (TaggerRequest, error) {
 	var r TaggerRequest
@@ -20,6 +23,12 @@ func (r *TaggerRequest) Marshal() ([]byte, error) {
 
 func (r *TaggerRequest) SetThreshold(f float64) *TaggerRequest {
 	r.Threshold = &f
+	return r
+}
+
+func (r *TaggerRequest) WithImageBytes(b []byte) *TaggerRequest {
+	b64 := base64.StdEncoding.EncodeToString(b)
+	r.Image = &b64
 	return r
 }
 
