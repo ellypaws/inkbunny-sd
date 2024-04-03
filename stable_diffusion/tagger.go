@@ -22,15 +22,22 @@ func (h *Host) GetInterrogators() ([]string, error) {
 	return interrogators.Models, nil
 }
 
-func (h *Host) Interrogate(req *entities.TaggerRequest) (entities.TaggerResponse, error) {
+func (h *Host) InterrogateRaw(req *entities.TaggerRequest) ([]byte, error) {
 	const interrogatePath = "/tagger/v1/interrogate"
 
 	jsonData, err := req.Marshal()
 	if err != nil {
-		return entities.TaggerResponse{}, err
+		return nil, err
 	}
 
-	response, err := h.POST(interrogatePath, jsonData)
+	return h.POST(interrogatePath, jsonData)
+}
+
+func (h *Host) Interrogate(req *entities.TaggerRequest) (entities.TaggerResponse, error) {
+	if req == nil {
+		return entities.TaggerResponse{}, ErrMissingRequest
+	}
+	response, err := h.InterrogateRaw(req)
 	if err != nil {
 		return entities.TaggerResponse{}, fmt.Errorf("error with POST request: %w", err)
 	}
@@ -38,7 +45,7 @@ func (h *Host) Interrogate(req *entities.TaggerRequest) (entities.TaggerResponse
 	return entities.UnmarshalTaggerResponse(response)
 }
 
-func (h *Host) InterrogateURL(url string, model string) (entities.TaggerResponse, error) {
+func (h *Host) InterrogateWith(url string, model string) (entities.TaggerResponse, error) {
 	if model == "" {
 		model = entities.TaggerZ3DE621Convnext
 	}
@@ -47,8 +54,4 @@ func (h *Host) InterrogateURL(url string, model string) (entities.TaggerResponse
 		Model: model,
 	}
 	return h.Interrogate(&req)
-}
-
-func (h *Host) FilterSpecies(url string) (entities.TaggerResponse, error) {
-	return h.InterrogateURL(url, entities.TaggerZ3DE621Convnext)
 }
