@@ -28,6 +28,7 @@ const (
 	Parameters     = "parameters"
 	Postprocessing = "postprocessing"
 	Extras         = "extras"
+	Caption        = "caption"
 )
 
 // AutoSnep is a Processor that parses yaml like raw txt where each two spaces is a new dict

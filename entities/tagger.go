@@ -56,41 +56,54 @@ func (r *TaggerResponse) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type CaptionEnum = string
 type TagEnum = string
 
 // TaggerResponse Interrogate response model
 type TaggerResponse struct {
 	// The generated captions for the image.
-	Caption map[CaptionEnum]map[string]float64 `json:"caption"`
+	Caption CaptionEnum `json:"caption"`
+}
+
+type CaptionEnum struct {
+	Tag    map[string]float64 `json:"tag,omitempty"`
+	Rating map[string]float64 `json:"rating,omitempty"`
 }
 
 func (r *TaggerResponse) Captions() map[string]float64 {
-	return r.Caption[CaptionEnumTag]
+	return r.Caption.Tag
 }
 
 func (r *TaggerResponse) HumanPercent() float64 {
-	if p, ok := r.Caption[CaptionEnumTag][TagEnumHuman]; ok {
+	if r.Caption.Tag == nil {
+		return 0
+	}
+	if p, ok := r.Caption.Tag[TagEnumHuman]; ok {
 		return p
 	}
 	return 0
 }
 
 func (r *TaggerResponse) CubPercent() float64 {
-	if p, ok := r.Caption[CaptionEnumTag][TagEnumCub]; ok {
+	if r.Caption.Tag == nil {
+		return 0
+	}
+	if p, ok := r.Caption.Tag[TagEnumCub]; ok {
 		return p
 	}
 	return 0
 }
 
 func (r *TaggerResponse) FurryPercent() float64 {
+	if r.Caption.Tag == nil {
+		return 0
+	}
 	var p float64
 	for _, v := range []TagEnum{
 		TagEnumFurry,
 		TagEnumAnthro,
 		TagEnumMammal,
 	} {
-		if f, ok := r.Caption[CaptionEnumTag][v]; ok {
+		if f, ok := r.Caption.Tag[v]; ok {
 			p = max(p, f)
 		}
 	}
@@ -125,9 +138,6 @@ const (
 )
 
 const (
-	CaptionEnumTag    CaptionEnum = "tag"
-	CaptionEnumRating CaptionEnum = "rating"
-
 	TagEnumHuman  TagEnum = "human"
 	TagEnumFurry  TagEnum = "furry"
 	TagEnumCub    TagEnum = "cub"
