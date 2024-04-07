@@ -145,6 +145,30 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 		positive.WriteString(fmt.Sprintf("<hypernet:%s:%s>", hypernet, results["Hypernet strength"]))
 	}
 
+	if loras, ok := results["Lora hashes"]; ok {
+		for _, lora := range strings.Split(loras, ", ") {
+			nameHash := strings.SplitN(lora, ":", 2)
+			if len(nameHash) == 2 {
+				if request.LoraHashes == nil {
+					request.LoraHashes = make(map[string]string)
+				}
+				request.LoraHashes[nameHash[0]] = nameHash[1]
+			}
+		}
+	}
+
+	if tis, ok := results["TI hashes"]; ok {
+		for _, ti := range strings.Split(tis, ", ") {
+			nameHash := strings.SplitN(ti, ":", 2)
+			if len(nameHash) == 2 {
+				if request.TIHashes == nil {
+					request.TIHashes = make(map[string]string)
+				}
+				request.TIHashes[nameHash[0]] = nameHash[1]
+			}
+		}
+	}
+
 	request.Prompt = positive.String()
 	request.NegativePrompt = negative.String()
 

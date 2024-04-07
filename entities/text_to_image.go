@@ -96,6 +96,8 @@ type TextToImageRequest struct {
 	SubseedStrength                   float64           `json:"subseed_strength,omitempty"`
 	Tiling                            *bool             `json:"tiling,omitempty"`
 	Width                             int               `json:"width,omitempty"`
+	LoraHashes                        map[string]string `json:"lora_hashes,omitempty"`
+	TIHashes                          map[string]string `json:"ti_hashes,omitempty"`
 }
 
 func UnmarshalTextToImageResponse(data []byte) (TextToImageResponse, error) {
