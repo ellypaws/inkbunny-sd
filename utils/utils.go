@@ -1,12 +1,12 @@
 package utils
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ellypaws/inkbunny/api"
 	"io"
 	"net/http"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -26,45 +26,68 @@ func ResultsToFields(result ExtractResult, fieldsToSet map[string]any) error {
 
 // CastStringToType dynamically casts a string to a field's type and assigns it.
 func CastStringToType(s string, fieldPtr any) error {
-	if s == "" {
+	if s == "" || s == "null" {
 		return nil
 	}
-	// Ensure fieldPtr is indeed a pointer, to be able to modify the original data
-	ptrValue := reflect.ValueOf(fieldPtr)
-	if ptrValue.Kind() != reflect.Pointer {
-		return errors.New("fieldPtr must be a pointer")
+	if fieldPtr == nil {
+		return errors.New("fieldPtr is nil")
 	}
-
-	// Dereference the pointer to work with the actual value
-	value := ptrValue.Elem()
-
-	switch value.Kind() {
-	case reflect.Int, reflect.Int64:
-		if intValue, err := strconv.ParseInt(s, 10, 64); err == nil {
-			value.SetInt(intValue)
-		} else {
+	switch f := fieldPtr.(type) {
+	case **string:
+		*f = &s
+	case *string:
+		*f = s
+	case **int:
+		i, err := strconv.Atoi(s)
+		if err != nil {
 			return err
 		}
-	case reflect.Float64:
-		if floatValue, err := strconv.ParseFloat(s, 64); err == nil {
-			value.SetFloat(floatValue)
-		} else {
+		*f = &i
+	case *int:
+		i, err := strconv.Atoi(s)
+		if err != nil {
 			return err
 		}
-	case reflect.String:
-		value.SetString(s)
-	case reflect.Bool:
-		if boolValue, err := strconv.ParseBool(s); err == nil {
-			value.SetBool(boolValue)
-		} else {
+		*f = i
+	case **int64:
+		i, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
 			return err
 		}
-	case reflect.Pointer:
-		return CastStringToType(s, value.Addr().Interface())
+		*f = &i
+	case *int64:
+		i, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return err
+		}
+		*f = i
+	case **float64:
+		fl, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return err
+		}
+		*f = &fl
+	case *float64:
+		fl, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return err
+		}
+		*f = fl
+	case **bool:
+		b, err := strconv.ParseBool(s)
+		if err != nil {
+			return err
+		}
+		*f = &b
+	case *bool:
+		b, err := strconv.ParseBool(s)
+		if err != nil {
+			return err
+		}
+		*f = b
 	default:
-		return errors.New("unsupported field type")
+		return json.Unmarshal([]byte(s), fieldPtr)
 	}
-
 	return nil
 }
 
