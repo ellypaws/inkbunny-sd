@@ -72,7 +72,7 @@ func submissionDetails(t *testing.T) (api.SubmissionDetailsResponse, error) {
 			SubmissionsPerPage: 5,
 			Page:               1,
 			Text:               "ai_generated",
-			Type:               api.SubmissionTypePicturePinup,
+			Type:               api.SubmissionTypes{api.SubmissionTypePicturePinup},
 			OrderBy:            "views",
 			Random:             true,
 			Scraps:             "both",

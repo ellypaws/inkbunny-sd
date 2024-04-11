@@ -59,7 +59,7 @@ func main() {
 			SubmissionsPerPage: 5,
 			Page:               1,
 			Text:               strings.TrimPrefix(submissionIDs, "tag:"),
-			Type:               api.SubmissionTypePicturePinup,
+			Type:               api.SubmissionTypes{api.SubmissionTypePicturePinup},
 			OrderBy:            "views",
 			Random:             true,
 			Scraps:             "both",
