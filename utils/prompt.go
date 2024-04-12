@@ -146,6 +146,7 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 	}
 
 	if loras, ok := results["Lora hashes"]; ok {
+		loras = strings.Trim(loras, `"`)
 		for _, lora := range strings.Split(loras, ", ") {
 			nameHash := strings.SplitN(lora, ":", 2)
 			if len(nameHash) == 2 {
@@ -158,6 +159,7 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 	}
 
 	if tis, ok := results["TI hashes"]; ok {
+		tis = strings.Trim(tis, `"`)
 		for _, ti := range strings.Split(tis, ", ") {
 			nameHash := strings.SplitN(ti, ":", 2)
 			if len(nameHash) == 2 {
