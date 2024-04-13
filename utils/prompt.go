@@ -148,12 +148,12 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 	if loras, ok := results["Lora hashes"]; ok {
 		loras = strings.Trim(loras, `"`)
 		for _, lora := range strings.Split(loras, ", ") {
-			nameHash := strings.SplitN(lora, ":", 2)
-			if len(nameHash) == 2 {
+			hashName := strings.SplitN(lora, ": ", 2)
+			if len(hashName) == 2 {
 				if request.LoraHashes == nil {
 					request.LoraHashes = make(map[string]string)
 				}
-				request.LoraHashes[nameHash[0]] = nameHash[1]
+				request.LoraHashes[hashName[1]] = hashName[0]
 			}
 		}
 	}
