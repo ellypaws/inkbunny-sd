@@ -33,6 +33,13 @@ func (h *Host) InterrogateRaw(req *entities.TaggerRequest) ([]byte, error) {
 	return h.POST(interrogatePath, jsonData)
 }
 
+// Interrogate sends a POST request to the tagger API with the given request.
+// It requires the [stable-diffusion-webui-wd14-tagger] extension with additional fixes from [dm18]
+// The default model used is [Z3D-E621-Convnext]
+//
+// [stable-diffusion-webui-wd14-tagger]: https://github.com/picobyte/stable-diffusion-webui-wd14-tagger
+// [dm18]: https://github.com/dm18/stable-diffusion-webui-wd14-tagger
+// [Z3D-E621-Convnext]: https://huggingface.co/toynya/Z3D-E621-Convnext
 func (h *Host) Interrogate(req *entities.TaggerRequest) (entities.TaggerResponse, error) {
 	if req == nil {
 		return entities.TaggerResponse{}, ErrMissingRequest
