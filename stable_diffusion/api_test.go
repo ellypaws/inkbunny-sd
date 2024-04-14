@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/ellypaws/inkbunny-sd/entities"
+	"github.com/labstack/gommon/bytes"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -95,7 +97,7 @@ func TestHost_Interrogate(t *testing.T) {
 		t.Fatalf("Failed to interrogate: %v", err)
 	}
 
-	if response.Caption == nil {
+	if response.Caption.Tag == nil {
 		t.Fatalf("Caption is nil")
 	}
 
@@ -109,5 +111,78 @@ func TestHost_Interrogate(t *testing.T) {
 
 	if !foundFeline {
 		t.Errorf("Failed to find felid")
+	}
+}
+
+func TestHost_GetCheckpoints(t *testing.T) {
+	checkpoints, err := h.GetCheckpoints()
+	if err != nil {
+		t.Errorf("Failed to get checkpoints: %v", err)
+	}
+
+	if len(checkpoints) == 0 {
+		t.Errorf("Checkpoints are empty")
+	}
+
+	t.Logf("Checkpoints: %v", checkpoints)
+}
+
+func TestGetCheckpointHash(t *testing.T) {
+	checkpoints, err := h.GetCheckpoints()
+	if err != nil {
+		t.Errorf("Failed to get checkpoints: %v", err)
+	}
+
+	if len(checkpoints) == 0 {
+		t.Errorf("Checkpoints are empty")
+	}
+
+	hash, err := GetCheckpointHash(checkpoints[0])
+	if err != nil {
+		t.Errorf("Failed to get checkpoint hash: %v", err)
+	}
+
+	if hash == "" {
+		t.Errorf("Hash is empty")
+	}
+
+	t.Logf("Hash: %+v", hash)
+}
+
+func TestHost_GetLoras(t *testing.T) {
+	loras, err := h.GetLoras()
+	if err != nil {
+		t.Errorf("Failed to get loras: %v", err)
+	}
+
+	if len(loras) == 0 {
+		t.Errorf("Loras are empty")
+	}
+
+	t.Logf("Loras: %v", len(loras))
+
+	for _, lora := range loras {
+		if lora.Metadata.SshsModelHash == nil {
+			t.Logf("Lora %s has no hash", lora.Name)
+
+			if !strings.HasSuffix(lora.Path, ".safetensors") {
+				continue
+			}
+
+			f, err := os.Stat(lora.Path)
+			if err != nil {
+				t.Errorf("File %v not found in %v: %v", lora.Name, lora.Path, err)
+				continue
+			}
+			if f.Size() >= 128*bytes.MiB {
+				continue
+			}
+			hash, err := CheckpointSafeTensorHash(lora.Path)
+			if err != nil {
+				t.Errorf("Failed to get hash: %v", err)
+				continue
+			}
+			t.Logf("Calculated hash: %v", hash.SHA256)
+		}
 	}
 }
