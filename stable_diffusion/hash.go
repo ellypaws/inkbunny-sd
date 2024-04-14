@@ -26,6 +26,9 @@ type LoraHash struct {
 
 var ErrNotSafeTensor = errors.New("not a safetensors file")
 
+// LoraSafetensorHash calculates the hash of a lora safetensors file.
+// It skips the first 8 bytes of the file (headers) and hashes the rest of the file.
+// The AutoV3 hash is usually the hash that's printed which is only the first 12 bytes of the SHA256 hash.
 func LoraSafetensorHash(path string) (*LoraHash, error) {
 	if !strings.HasSuffix(path, ".safetensors") {
 		return nil, ErrNotSafeTensor
@@ -102,4 +105,22 @@ func CheckpointSafeTensorHash(path string) (*CheckpointHash, error) {
 		SHA256: h,
 		AutoV2: h[:10],
 	}, nil
+}
+
+// CalculateHash calculates the hash of a safetensors file.
+// If lora is true, it calculates the hash using LoraSafetensorHash, which gives the LoraHash.AutoV3
+// Otherwise, it calculates the hash using CheckpointSafeTensorHash, which gives the CheckpointHash.AutoV2
+func CalculateHash(path string, lora bool) (string, error) {
+	if lora {
+		hash, err := LoraSafetensorHash(path)
+		if err != nil {
+			return "", err
+		}
+		return hash.AutoV3, nil
+	}
+	hash, err := CheckpointSafeTensorHash(path)
+	if err != nil {
+		return "", err
+	}
+	return hash.AutoV2, nil
 }
