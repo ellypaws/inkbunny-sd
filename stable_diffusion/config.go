@@ -21,7 +21,7 @@ func (h *Host) GetConfig() (*entities.Config, error) {
 	return &apiConfig, nil
 }
 
-func (h *Host) GetCheckpoint() (*string, error) {
+func (h *Host) GetConfigCheckoint() (*string, error) {
 	apiConfig, err := h.GetConfig()
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func (h *Host) GetCheckpoint() (*string, error) {
 	return apiConfig.SDModelCheckpoint, nil
 }
 
-func (h *Host) GetVAE() (*string, error) {
+func (h *Host) GetConfigVAE() (*string, error) {
 	apiConfig, err := h.GetConfig()
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (h *Host) GetVAE() (*string, error) {
 	return apiConfig.SDVae, nil
 }
 
-func (h *Host) GetHypernetwork() (*string, error) {
+func (h *Host) GetConfigHypernetwork() (*string, error) {
 	apiConfig, err := h.GetConfig()
 	if err != nil {
 		return nil, err
