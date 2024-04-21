@@ -40,8 +40,16 @@ func TestExtractNegativeForward(t *testing.T) {
 	t.Log(ExtractNegativeForward(sample))
 }
 
+//go:embed samples/description.txt
+var description []byte
+
 func TestDescriptionHeuristics(t *testing.T) {
 	t2i, err := DescriptionHeuristics(sample)
+	if err != nil {
+		t.Fatalf("Expected no error, got %s", err)
+	}
+
+	t2i, err = DescriptionHeuristics(string(description))
 	if err != nil {
 		t.Fatalf("Expected no error, got %s", err)
 	}

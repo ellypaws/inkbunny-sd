@@ -23,8 +23,9 @@ var (
 
 	allParams = regexp.MustCompile(`\s*(\w[\w \-/]+):\s*("(?:\\.|[^\\"])+"|[^,]*)(?:,|$)`)
 
-	positivePattern = regexp.MustCompile(`(?is)(?:(?:primary |pos(?:itive)? )?prompts?:?)(.+)negative prompt:?`)
-	negativePattern = regexp.MustCompile(`(?is)(?:(?:|neg(?:ative)? )?prompts?:?)(.*?)(?:steps|sampler|model)`)
+	positivePattern = regexp.MustCompile(`(?is)(?:(?:primary |pos(?:itive)? )?prompts?:?)\s*(.+)\s*negative(?: prompt:?)?`)
+	negativePattern = regexp.MustCompile(`(?is)(?:(?:neg(?:ative)?)(?: prompts?)?:?)\s*(.+)\s*(?:steps|sampler|model)`)
+	negativeEnd     = regexp.MustCompile(`(?is)(?:(?:neg(?:ative)?)(?: prompts?)?:?)\s*(.+)`)
 	bbCode          = regexp.MustCompile(`\[\/?[\w=]+\]`)
 
 	extractJson    = regexp.MustCompile(`(?ms){.*}`)

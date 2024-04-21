@@ -36,6 +36,10 @@ func ExtractNegativePrompt(s string) string {
 		result = ExtractNegativeBackwards(s)
 	}
 
+	if result == "" {
+		result = Extract(s, negativeEnd)
+	}
+
 	return trim(result)
 }
 
@@ -44,6 +48,31 @@ func trim(s string) string {
 }
 
 func DescriptionHeuristics(description string) (entities.TextToImageRequest, error) {
+	description = RemoveBBCode(description)
+
+	for _, line := range strings.Split(description, "\n") {
+		if strings.HasPrefix(strings.ToLower(line), "parameters") {
+			params, err := Common(
+				WithString(description),
+				WithKeyCondition(func(line string) bool { return strings.HasPrefix(line, "parameters") }))
+			if err != nil {
+				return entities.TextToImageRequest{}, err
+			}
+
+			for _, param := range params {
+				if p, ok := param[Parameters]; ok {
+					heuristics, err := ParameterHeuristics(p)
+					if err != nil {
+						return entities.TextToImageRequest{}, err
+					}
+					return heuristics, nil
+				}
+			}
+
+			break
+		}
+	}
+
 	results := ExtractAll(description, Patterns)
 
 	var request entities.TextToImageRequest
@@ -148,12 +177,12 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 	if loras, ok := results["Lora hashes"]; ok {
 		loras = strings.Trim(loras, `"`)
 		for _, lora := range strings.Split(loras, ", ") {
-			nameHash := strings.SplitN(lora, ": ", 2)
-			if len(nameHash) == 2 {
+			hashName := strings.SplitN(lora, ": ", 2)
+			if len(hashName) == 2 {
 				if request.LoraHashes == nil {
 					request.LoraHashes = make(map[string]string)
 				}
-				request.LoraHashes[nameHash[1]] = nameHash[0]
+				request.LoraHashes[hashName[1]] = hashName[0]
 			}
 		}
 	}
@@ -161,12 +190,12 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 	if tis, ok := results["TI hashes"]; ok {
 		tis = strings.Trim(tis, `"`)
 		for _, ti := range strings.Split(tis, ", ") {
-			nameHash := strings.SplitN(ti, ": ", 2)
+			nameHash := strings.SplitN(ti, ":", 2)
 			if len(nameHash) == 2 {
 				if request.TIHashes == nil {
 					request.TIHashes = make(map[string]string)
 				}
-				request.TIHashes[nameHash[1]] = nameHash[0]
+				request.TIHashes[nameHash[0]] = nameHash[1]
 			}
 		}
 	}
