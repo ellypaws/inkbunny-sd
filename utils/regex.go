@@ -14,7 +14,7 @@ var (
 		"width":      regexp.MustCompile(`(?i)size:? (?P<width>\d+)x\d+`),
 		"height":     regexp.MustCompile(`(?i)size:? \d+x(?P<height>\d+)`),
 		"hash":       regexp.MustCompile(`(?i)model hash:? (?P<hash>\w+)`),
-		"model":      regexp.MustCompile(`(?i)model ?[^h]:? (?P<model>[\w-]+)`),
+		"model":      regexp.MustCompile(`(?i)(?:model|checkpoint) ?[^h]:? (?P<model>[\w-]+)`),
 		"denoising":  regexp.MustCompile(`(?i)denoising strength:? (?P<denoising>[\d.]+)`),
 		"loraHashes": regexp.MustCompile(loraHashes),
 		"tiHashes":   regexp.MustCompile(tiHashes),
