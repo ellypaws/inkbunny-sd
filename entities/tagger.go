@@ -1,9 +1,3 @@
-// This file was generated from JSON Schema using quicktype, do not modify it directly.
-// To parse and unparse this JSON data, add this code to your project and do:
-//
-//    taggerInterrogate, err := UnmarshalTaggerInterrogate(bytes)
-//    bytes, err = taggerInterrogate.Marshal()
-
 package entities
 
 import (
@@ -78,6 +72,16 @@ func (r *TaggerResponse) HumanPercent() float64 {
 		return 0
 	}
 	if p, ok := r.Caption.Tag[TagEnumHuman]; ok {
+		return p
+	}
+	return 0
+}
+
+func (c *CaptionEnum) HumanPercent() float64 {
+	if c.Tag == nil {
+		return 0
+	}
+	if p, ok := c.Tag[TagEnumHuman]; ok {
 		return p
 	}
 	return 0

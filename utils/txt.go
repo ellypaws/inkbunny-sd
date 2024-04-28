@@ -5,9 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/ellypaws/inkbunny-sd/entities"
 	"io"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -29,6 +31,16 @@ const (
 	Postprocessing = "postprocessing"
 	Extras         = "extras"
 	Caption        = "caption"
+
+	IDAutoSnep    = 1004248
+	IDDruge       = 151203
+	IDArtieDragon = 1190392
+	IDAIBean      = 147301
+	IDFairyGarden = 215070
+	IDCirn0       = 177167
+	IDHornybunny  = 12499
+	IDNeoncortex  = 14603
+	IDMethuzalach = 1089071
 )
 
 // AutoSnep is a Processor that parses yaml like raw txt where each two spaces is a new dict
@@ -46,6 +58,9 @@ func AutoSnep(opts ...func(*Config)) (Params, error) {
 	var png string
 	var key string
 	for scanner.Scan() {
+		if err := scanner.Err(); err != nil {
+			return nil, err
+		}
 		line := scanner.Text()
 
 		indentLevel := len(line) - len(strings.TrimLeft(line, " "))
@@ -72,8 +87,8 @@ func AutoSnep(opts ...func(*Config)) (Params, error) {
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, err
+	if len(chunks) == 0 {
+		return nil, errors.New("no chunks found")
 	}
 
 	return chunks, nil
@@ -117,6 +132,77 @@ func UseFairyGarden() func(*Config) {
 			return strings.HasPrefix(line, "photo")
 		}
 		c.Filename = "fairygarden_"
+		// prepend "photo 1" to the input in case it's missing
+		c.Text = "photo 1\n" + c.Text
+	}
+}
+
+func UseCirn0() func(*Config) {
+	return func(c *Config) {
+		c.KeyCondition = func(line string) bool {
+			return strings.HasPrefix(line, "===")
+		}
+		c.Filename = "cirn0_"
+
+		var part string
+		lines := strings.Split(c.Text, "\n")
+		for i, line := range lines {
+			if strings.HasPrefix(line, "=== #") {
+				part = strings.TrimPrefix(line, "=== #")
+			}
+			if strings.HasPrefix(line, "---") {
+				lines[i] = fmt.Sprintf("=== Part #%s", part)
+			}
+		}
+		c.Text = strings.Join(lines, "\n")
+	}
+}
+
+func UseHornybunny() func(*Config) {
+	return func(c *Config) {
+		c.KeyCondition = func(line string) bool {
+			return regexp.MustCompile(`^\(\d+\)$`).MatchString(line)
+		}
+		c.Filename = "Hornybunny_"
+		//c.Text = strings.ReplaceAll(c.Text, "----", "")
+		//c.Text = strings.ReplaceAll(c.Text, "Original generation details", "")
+		//c.Text = strings.ReplaceAll(c.Text, "Upscaling details", "")
+		c.Text = strings.ReplaceAll(c.Text, "Positive Prompt: ", "")
+		c.Text = strings.ReplaceAll(c.Text, "Other details: ", "")
+		c.SkipCondition = func(line string) bool {
+			switch line {
+			case "----":
+				return true
+			case "==========":
+				return true
+			case "Original generation details":
+				return true
+			case "Upscaling details":
+				return true
+			default:
+				return false
+			}
+		}
+	}
+}
+
+var (
+	methuzalachModel    = regexp.MustCompile(`Model: [^\n]+`)
+	methuzalachNegative = regexp.MustCompile(`Negative prompts:\s*`)
+	methuzalachSeed     = regexp.MustCompile(`\s*Seed: \D*?[,\s]`)
+	methuzalachSteps    = regexp.MustCompile(`.*(Steps: \d+[^\n]*)`)
+)
+
+func UseMethuzalach() func(*Config) {
+	return func(c *Config) {
+		c.KeyCondition = func(line string) bool {
+			return strings.HasPrefix(line, "Image")
+		}
+
+		model := methuzalachModel.FindString(c.Text)
+		c.Text = methuzalachNegative.ReplaceAllString(c.Text, "Negative Prompt: ")
+		c.Text = methuzalachSeed.ReplaceAllString(c.Text, "")
+		c.Text = methuzalachSteps.ReplaceAllString(c.Text, `$1 `+model)
 	}
 }
 
@@ -165,14 +251,15 @@ func Common(opts ...func(*Config)) (Params, error) {
 	var foundNegative bool
 	var extra string
 	for scanner.Scan() {
+		if err := scanner.Err(); err != nil {
+			return nil, err
+		}
 		line := scanner.Text()
+
 		if c.SkipCondition != nil && c.SkipCondition(line) {
 			continue
 		}
-		if foundNegative {
-			chunks[key][Parameters] += "\n" + line
-			foundNegative = false
-			key = ""
+		if len(line) == 0 {
 			continue
 		}
 		if c.KeyCondition(line) {
@@ -183,7 +270,10 @@ func Common(opts ...func(*Config)) (Params, error) {
 		if len(key) == 0 {
 			continue
 		}
-		if len(line) == 0 {
+		if foundNegative {
+			chunks[key][Parameters] += "\n" + line
+			foundNegative = false
+			key = ""
 			continue
 		}
 		if strings.HasPrefix(line, "Negative Prompt:") {
@@ -208,6 +298,10 @@ func Common(opts ...func(*Config)) (Params, error) {
 			chunks[key][Parameters] += "\n"
 		}
 		chunks[key][Parameters] += line
+	}
+
+	if len(chunks) == 0 {
+		return nil, errors.New("no chunks found")
 	}
 
 	return chunks, nil
