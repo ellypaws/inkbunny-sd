@@ -7,11 +7,11 @@ replace github.com/ellypaws/inkbunny-sd => ../../
 replace github.com/ellypaws/inkbunny-sd/cmd => ../
 
 require (
-	github.com/ellypaws/inkbunny-sd v0.0.0
-	github.com/ellypaws/inkbunny-sd/cmd v0.0.0
+	github.com/ellypaws/inkbunny-sd v0.0.0-00010101000000-000000000000
+	github.com/ellypaws/inkbunny-sd/cmd v0.0.0-00010101000000-000000000000
 	github.com/ellypaws/inkbunny/api v0.0.0-20240411110242-d491ced97f23
 	github.com/go-errors/errors v1.5.1
-	github.com/labstack/echo/v4 v4.11.4
+	github.com/labstack/echo/v4 v4.12.0
 	github.com/stretchr/testify v1.9.0
 )
 
