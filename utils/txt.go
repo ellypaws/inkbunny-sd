@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -41,6 +40,7 @@ const (
 	IDHornybunny  = 12499
 	IDNeoncortex  = 14603
 	IDMethuzalach = 1089071
+	IDRNSDAI      = 1188211
 )
 
 // AutoSnep is a Processor that parses yaml like raw txt where each two spaces is a new dict
@@ -68,7 +68,7 @@ func AutoSnep(opts ...func(*Config)) (Params, error) {
 		switch indentLevel {
 		case 0:
 			if strings.HasSuffix(line, ":") {
-				png = "AutoSnep_" + strings.TrimSuffix(line, ":")
+				png = c.Filename + strings.TrimSuffix(line, ":")
 				chunks[png] = make(PNGChunk)
 			}
 		case 2: // PNG text chunks:
@@ -197,13 +197,17 @@ func Cirn0(opts ...func(*Config)) (Params, error) {
 	return chunks, nil
 }
 
+var drugeMatchDigit = regexp.MustCompile(`(?m)^\d+`)
+
 func UseDruge() func(*Config) {
 	return func(c *Config) {
 		c.KeyCondition = func(line string) bool {
-			_, err := strconv.Atoi(line)
-			return err == nil
+			return drugeMatchDigit.MatchString(line)
 		}
 		c.Filename = "druge_"
+		if !drugeMatchDigit.MatchString(c.Text) {
+			c.Text = "1\n" + c.Text
+		}
 	}
 }
 
@@ -216,16 +220,25 @@ func UseArtie() func(*Config) {
 	}
 }
 
+var aiBeanKey = regexp.MustCompile(`(?i)^(image )?\d+`)
+
 func UseAIBean() func(*Config) {
 	return func(c *Config) {
 		c.KeyCondition = func(line string) bool {
-			_, err := strconv.Atoi(line)
-			return err == nil
+			return aiBeanKey.MatchString(line)
 		}
 		c.Filename = "AIBean_"
 		c.SkipCondition = func(line string) bool {
 			return line == "parameters"
 		}
+		if aiBeanKey.MatchString(c.Text) {
+			return
+		}
+		if strings.HasPrefix(c.Text, "parameters") {
+			c.Text = strings.Replace(c.Text, "parameters", "1", 1)
+			return
+		}
+		c.Text = "1\n" + c.Text
 	}
 }
 
@@ -352,7 +365,7 @@ func Common(opts ...func(*Config)) (Params, error) {
 	scanner := bufio.NewScanner(strings.NewReader(c.Text))
 
 	var key string
-	var foundNegative bool
+	var negativePrompt string
 	var extra string
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
@@ -374,14 +387,20 @@ func Common(opts ...func(*Config)) (Params, error) {
 		if len(key) == 0 {
 			continue
 		}
-		if foundNegative {
+		if len(negativePrompt) > 0 {
+			if !negativeHasText.MatchString(negativePrompt) {
+				chunks[key][Parameters] += line
+				continue
+			}
 			chunks[key][Parameters] += "\n" + line
-			foundNegative = false
-			key = ""
+			if stepsStart.MatchString(line) {
+				negativePrompt = ""
+				key = ""
+			}
 			continue
 		}
 		if negativeStart.MatchString(line) {
-			foundNegative = true
+			negativePrompt = line
 			chunks[key][Parameters] += "\n" + line
 			continue
 		}

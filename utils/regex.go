@@ -10,7 +10,7 @@ var (
 		"steps":      regexp.MustCompile(`(?i)steps:? (?P<steps>\d+)`),
 		"sampler":    regexp.MustCompile(`(?i)sampler:? (?P<sampler>[\w+ ]+)`),
 		"cfg":        regexp.MustCompile(`(?i)cfg(?: scale:)?\s*(?P<cfg>[\d.]+)`),
-		"seed":       regexp.MustCompile(`(?i)seed:?\s*(?P<seed>\d+)`),
+		"seed":       regexp.MustCompile(`(?i)seeds?:?\s*(?P<seed>\d+)`),
 		"width":      regexp.MustCompile(`(?i)size:? (?P<width>\d+)x\d+`),
 		"height":     regexp.MustCompile(`(?i)size:? \d+x(?P<height>\d+)`),
 		"hash":       regexp.MustCompile(`(?i)model hash:? (?P<hash>\w+)`),
@@ -21,6 +21,15 @@ var (
 		"version":    regexp.MustCompile(`(?i)version:? (?P<version>v[\w.-]+)`),
 	}
 
+	// RNSDAIPatterns are preset regexp.Regexp patterns for IDRNSDAI
+	RNSDAIPatterns = map[string]*regexp.Regexp{
+		"model":    regexp.MustCompile(`(?i)model[\s•]*\[b](?P<model>[^[]+)\[/b]`),
+		"seed":     regexp.MustCompile(`(?i)seeds[\s•]*\[(?P<seed>\d+)]?`),
+		"version":  regexp.MustCompile(`(?i)image generator[\s•]*[^:]+: v[\d.]+`),
+		"prompt":   regexp.MustCompile(`(?is)positive prompt:\[/b]\n(?P<prompt>.*?)\n\[/q]`),
+		"negative": regexp.MustCompile(`(?is)negative prompt:\[/b]\n(?P<negative>.*?)\n\[/q]`),
+	}
+
 	allParams = regexp.MustCompile(`\s*(\w[\w \-/]+):\s*("(?:\\.|[^\\"])+"|[^,]*)(?:,|$)`)
 
 	positivePattern = regexp.MustCompile(`(?is)(?:(?:primary |pos(?:itive)? )?prompts?:?)\s*(.+?)\s*negative(?: prompt:?)?`)
@@ -28,7 +37,12 @@ var (
 	negativePattern = regexp.MustCompile(`(?is)(?:(?:neg(?:ative)?)(?: prompts?)?:?)\s*(.+?)\s*(?:steps|sampler|model|seed|cfg)`)
 	negativeEnd     = regexp.MustCompile(`(?is)(?:(?:neg(?:ative)?)(?: prompts?)?:?)\s*(.+)`)
 	negativeStart   = regexp.MustCompile(`(?i)^negative(?: prompts?)?:\s*`)
+	ParametersStart = regexp.MustCompile(`(?is)^(parameters\n.*)`)
 	bbCode          = regexp.MustCompile(`\[\/?[\w=]+\]`)
+
+	negativeHasText = regexp.MustCompile(`(?i)^negative prompt: ?\S`)
+	stepsStart      = regexp.MustCompile(`(?i)^steps: ?\d`)
+	StepsStart      = regexp.MustCompile(`(?im)^Steps: ?\d+, Sampler:`)
 
 	extractJson    = regexp.MustCompile(`(?ms){.*}`)
 	removeComments = regexp.MustCompile(`(?m)//.*$`)
