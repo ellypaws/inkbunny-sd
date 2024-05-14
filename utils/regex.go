@@ -14,7 +14,7 @@ var (
 		"width":      regexp.MustCompile(`(?i)size:? (?P<width>\d+)x\d+`),
 		"height":     regexp.MustCompile(`(?i)size:? \d+x(?P<height>\d+)`),
 		"hash":       regexp.MustCompile(`(?i)model hash:? (?P<hash>\w+)`),
-		"model":      regexp.MustCompile(`(?i)(?:model|checkpoint) ?[^h]:?\s*(?P<model>[^,\n]+)`),
+		"model":      regexp.MustCompile(`(?i)(?:model|checkpoint)\s*:\s*(?P<model>[^,\n]+)`),
 		"denoising":  regexp.MustCompile(`(?i)denoising strength:? (?P<denoising>[\d.]+)`),
 		"loraHashes": regexp.MustCompile(loraHashes),
 		"tiHashes":   regexp.MustCompile(tiHashes),
@@ -32,12 +32,12 @@ var (
 
 	allParams = regexp.MustCompile(`\s*(\w[\w \-/]+):\s*("(?:\\.|[^\\"])+"|[^,]*)(?:,|$)`)
 
-	positivePattern = regexp.MustCompile(`(?is)(?:(?:primary |pos(?:itive)? )?prompts?:?)\s*(.+?)\s*negative(?: prompt:?)?`)
-	positiveEnd     = regexp.MustCompile(`(?is)(?:(?:primary |pos(?:itive)? )?prompts?:?)\s*(.+)`)
-	negativePattern = regexp.MustCompile(`(?is)(?:(?:neg(?:ative)?)(?: prompts?)?:?)\s*(.+?)\s*(?:steps|sampler|model|seed|cfg)`)
-	negativeEnd     = regexp.MustCompile(`(?is)(?:(?:neg(?:ative)?)(?: prompts?)?:?)\s*(.+)`)
+	positivePattern = regexp.MustCompile(`(?ims)^(?:(?:primary |pos(?:itive)? )?prompts?:?)\s*(.+?)\s*negative`)
+	positiveEnd     = regexp.MustCompile(`(?ims)^(?:(?:primary |pos(?:itive)? )?prompts?:?)\s*(.+)`)
+	negativePattern = regexp.MustCompile(`(?ims)^(?:(?:neg(?:ative)?)(?: prompts?)?:?)\s*(.+?)\s*(?:steps|sampler|model|seed|cfg)`)
+	negativeEnd     = regexp.MustCompile(`(?ims)^(?:(?:neg(?:ative)?)(?: prompts?)?:?)\s*(.+)`)
 	negativeStart   = regexp.MustCompile(`(?i)^negative(?: prompts?)?:\s*`)
-	ParametersStart = regexp.MustCompile(`(?is)^(parameters\n.*)`)
+	ParametersStart = regexp.MustCompile(`(?ims)^(parameters\n.*)`)
 	bbCode          = regexp.MustCompile(`\[\/?[\w=]+\]`)
 
 	negativeHasText = regexp.MustCompile(`(?i)^negative prompt: ?\S`)
