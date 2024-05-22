@@ -522,6 +522,28 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 					req.OverrideSettings.SDVae = input.String
 				}
 			}
+		case CRModelMergeStack:
+			for i, input := range node.WidgetsValues.UnionArray {
+				// check the 2nd input in groups of 4
+				if i%4-1 != 0 {
+					continue
+				}
+				if input.String == nil {
+					continue
+				}
+				if *input.String == "None" {
+					continue
+				}
+				// check if the previous input is "On"
+				previous := node.WidgetsValues.UnionArray[i-1]
+				if previous.String == nil {
+					continue
+				}
+				if *previous.String != "On" {
+					continue
+				}
+				fallback(&req.OverrideSettings.SDModelCheckpoint, input.String)
+			}
 		case CRLoRAStack:
 			var lastLora *string
 			var enabled bool
