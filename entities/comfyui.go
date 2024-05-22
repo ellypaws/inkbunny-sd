@@ -555,6 +555,10 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 					}
 				case 1:
 					if input.String != nil {
+						if *input.String == "None" {
+							enabled = false
+							continue
+						}
 						if enabled {
 							lastLora = input.String
 							loras[*lastLora] = 1
