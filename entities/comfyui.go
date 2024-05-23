@@ -525,7 +525,7 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 		case CRModelMergeStack:
 			for i, input := range node.WidgetsValues.UnionArray {
 				// check the 2nd input in groups of 4
-				if i%4-1 != 0 {
+				if i%4 != 1 {
 					continue
 				}
 				if input.String == nil {
