@@ -523,6 +523,10 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 				}
 			}
 		case CRModelMergeStack:
+			if req.OverrideSettings.SDModelCheckpoint != nil {
+				continue
+			}
+			var currentWeight float64
 			for i, input := range node.WidgetsValues.UnionArray {
 				// check the 2nd input in groups of 4
 				if i%4 != 1 {
@@ -542,7 +546,22 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 				if *previous.String != "On" {
 					continue
 				}
-				fallback(&req.OverrideSettings.SDModelCheckpoint, input.String)
+				// check if the next input (weight) is not zero
+				if len(node.WidgetsValues.UnionArray) <= i+1 {
+					break
+				}
+				weight := node.WidgetsValues.UnionArray[i+1]
+				if weight.Double == nil {
+					continue
+				}
+				if *weight.Double <= 0 {
+					continue
+				}
+				// prefer the model with the highest weight
+				if *weight.Double > currentWeight {
+					currentWeight = *weight.Double
+					req.OverrideSettings.SDModelCheckpoint = input.String
+				}
 			}
 		case CRLoRAStack:
 			var lastLora *string
