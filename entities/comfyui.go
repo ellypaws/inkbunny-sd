@@ -475,6 +475,15 @@ const (
 	ImageScaleBy                NodeType = "ImageScaleBy"
 	SAMLoader                   NodeType = "SAMLoader"
 	RebatchImages               NodeType = "RebatchImages"
+	CFGGuider                   NodeType = "CFGGuider"
+	SamplerDPMPP_3M_SDE         NodeType = "SamplerDPMPP_3M_SDE"
+	AlignYourStepsScheduler     NodeType = "AlignYourStepsScheduler"
+	SamplerCustomAdvanced       NodeType = "SamplerCustomAdvanced"
+	CLIPMergeSimple             NodeType = "CLIPMergeSimple"
+	RandomNoise                 NodeType = "RandomNoise"
+	LoadImage                   NodeType = "LoadImage"
+	VRAM_Debug                  NodeType = "VRAM_Debug"
+	VAEDecodeTiled              NodeType = "VAEDecodeTiled"
 )
 
 func fallback[T any](field *T, fallback T) {
@@ -714,6 +723,33 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 					if input.Double != nil {
 						fallback(&req.DenoisingStrength, *input.Double)
 					}
+				}
+			}
+		case CFGGuider:
+			if req.CFGScale != 0 {
+				continue
+			}
+			for _, input := range node.WidgetsValues.UnionArray {
+				if input.Double != nil {
+					req.CFGScale = *input.Double
+					break
+				}
+			}
+		case CRModulePipeLoader:
+			for _, input := range node.WidgetsValues.UnionArray {
+				if input.Double != nil {
+					req.Seed = int64(*input.Double)
+					break
+				}
+			}
+		case AlignYourStepsScheduler:
+			for i, input := range node.WidgetsValues.UnionArray {
+				if i != 1 {
+					continue
+				}
+				if input.Double != nil {
+					req.Steps = int(*input.Double)
+					break
 				}
 			}
 		}
