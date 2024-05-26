@@ -3,7 +3,7 @@ module github.com/ellypaws/inkbunny-sd
 go 1.22.3
 
 require (
-	github.com/ellypaws/inkbunny/api v0.0.0-20240505180909-24d168283264
+	github.com/ellypaws/inkbunny/api v0.0.0-20240521065300-7d34160ddf2d
 	github.com/labstack/gommon v0.4.2
 )
 
