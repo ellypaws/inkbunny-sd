@@ -40,7 +40,7 @@ var (
 	negativeEnd     = regexp.MustCompile(`(?ims)^(?:(?:neg(?:ative)?)(?: prompts?)?:?)\s*(.+)`)
 	negativeStart   = regexp.MustCompile(`(?i)^negative(?: prompts?)?:\s*`)
 	ParametersStart = regexp.MustCompile(`(?ims)^(parameters\n.*)`)
-	bbCode          = regexp.MustCompile(`\[\/?[\w=]+\]`)
+	bbCode          = regexp.MustCompile(`\[/?[^]]+]`)
 
 	negativeHasText = regexp.MustCompile(`(?i)^negative prompt: ?\S`)
 	stepsStart      = regexp.MustCompile(`(?i)^steps: ?\d`)
