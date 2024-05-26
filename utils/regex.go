@@ -6,19 +6,21 @@ import (
 )
 
 var (
+	// Patterns are the regexp.Regexp patterns for DescriptionHeuristics to get the parameters from the description.
+	// The keys are the names of the capture groups in the pattern. Currently being used in ExtractAll
 	Patterns = map[string]*regexp.Regexp{
-		"steps":      regexp.MustCompile(`(?i)steps:? (?P<steps>\d+)`),
-		"sampler":    regexp.MustCompile(`(?i)sampler:? (?P<sampler>[\w+ ]+)`),
-		"cfg":        regexp.MustCompile(`(?i)cfg(?: scale:)?\s*(?P<cfg>[\d.]+)`),
-		"seed":       regexp.MustCompile(`(?i)seeds?:?\s*(?P<seed>\d+)`),
-		"width":      regexp.MustCompile(`(?i)size:? (?P<width>\d+)x\d+`),
-		"height":     regexp.MustCompile(`(?i)size:? \d+x(?P<height>\d+)`),
-		"hash":       regexp.MustCompile(`(?i)model hash:? (?P<hash>\w+)`),
-		"model":      regexp.MustCompile(`(?i)(?:model|checkpoint)\s*:\s*(?P<model>[^,\n]+)`),
-		"denoising":  regexp.MustCompile(`(?i)denoising strength:? (?P<denoising>[\d.]+)`),
+		"steps":      regexp.MustCompile(`(?i)steps[:\s-]+(?P<steps>\d+)`),
+		"sampler":    regexp.MustCompile(`(?i)sampl(?:er|ing method)[:\s-]+(?P<sampler>[\w+ ]+)`),
+		"cfg":        regexp.MustCompile(`(?i)(?:cfg(?: scale)?|scale)[:\s-]+(?P<cfg>[\d.]+)`),
+		"seed":       regexp.MustCompile(`(?i)seeds?[:\s-]+(?P<seed>\d+)`),
+		"width":      regexp.MustCompile(`(?i)size[:\s-]+(?P<width>\d+)x\d+`),
+		"height":     regexp.MustCompile(`(?i)size[:\s-]+\d+x(?P<height>\d+)`),
+		"hash":       regexp.MustCompile(`(?i)model hash[:\s-]+(?P<hash>\w+)`),
+		"model":      regexp.MustCompile(`(?i)(?:model|checkpoint)[:\s-]+(?P<model>[^,\n]+)`),
+		"denoising":  regexp.MustCompile(`(?i)denoising strength[:\s-]+(?P<denoising>[\d.]+)`),
 		"loraHashes": regexp.MustCompile(loraHashes),
 		"tiHashes":   regexp.MustCompile(tiHashes),
-		"version":    regexp.MustCompile(`(?i)version:? (?P<version>v[\w.-]+)`),
+		"version":    regexp.MustCompile(`(?i)version[:\s-]+(?P<version>v[\w.-]+)`),
 	}
 
 	// RNSDAIPatterns are preset regexp.Regexp patterns for IDRNSDAI
