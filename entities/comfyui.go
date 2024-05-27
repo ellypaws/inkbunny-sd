@@ -492,6 +492,9 @@ const (
 	LoadImage                   NodeType = "LoadImage"
 	VRAM_Debug                  NodeType = "VRAM_Debug"
 	VAEDecodeTiled              NodeType = "VAEDecodeTiled"
+	DPRandomGenerator           NodeType = "DPRandomGenerator"
+	SaveTextFile                NodeType = "Save Text File"
+	LoraLoaderStack             NodeType = "Lora Loader Stack (rgthree)"
 )
 
 func fallback[T any](field *T, fallback T) {
@@ -763,6 +766,13 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 				}
 				if input.Double != nil {
 					req.Steps = int(*input.Double)
+					break
+				}
+			}
+		case DPRandomGenerator:
+			for _, input := range node.WidgetsValues.UnionArray {
+				if input.String != nil {
+					prompt.WriteString(*input.String)
 					break
 				}
 			}
