@@ -64,7 +64,7 @@ type Node struct {
 	Size          *Pos                `json:"size"`
 	Flags         Flags               `json:"flags"`
 	Order         int64               `json:"order"`
-	Mode          int64               `json:"mode"`
+	Mode          Mode                `json:"mode"`
 	Inputs        []Input             `json:"inputs,omitempty"`
 	Outputs       []Output            `json:"outputs,omitempty"`
 	Properties    Properties          `json:"properties"`
@@ -73,6 +73,14 @@ type Node struct {
 	BGColor       *string             `json:"bgcolor,omitempty"`
 	Title         *Title              `json:"title,omitempty"`
 }
+
+type Mode int64
+
+const (
+	ModeNormal Mode = iota << 1
+	ModeMuted
+	ModeBypass
+)
 
 type Flags struct {
 	Collapsed *bool `json:"collapsed,omitempty"`
@@ -518,6 +526,12 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 	var prompt strings.Builder
 	var loras = make(map[string]float64)
 	for _, node := range r.Nodes {
+		if node.Mode == ModeMuted {
+			continue
+		}
+		if node.Mode == ModeBypass {
+			continue
+		}
 		switch node.Type {
 		case CheckpointLoaderSimple:
 			for _, input := range node.WidgetsValues.UnionArray {
