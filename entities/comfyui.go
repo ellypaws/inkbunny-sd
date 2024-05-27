@@ -619,10 +619,10 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 					}
 				}
 			}
-		case LoraLoader:
+		case LoraLoader, LoraLoaderStack:
 			var lastLora *string
 			for i, input := range node.WidgetsValues.UnionArray {
-				switch i {
+				switch i % 2 {
 				case 0:
 					if input.String != nil {
 						lastLora = input.String
