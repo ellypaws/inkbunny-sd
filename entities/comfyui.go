@@ -526,7 +526,7 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 	}
 	var _ Config
 	var req TextToImageRequest
-	var prompt strings.Builder
+	var prompt PromptWriter
 	var loras = make(map[string]float64)
 	for _, node := range r.Nodes {
 		if node.Mode == ModeMuted {
@@ -786,4 +786,23 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 	req.Prompt = prompt.String()
 
 	return &req
+}
+
+type PromptWriter strings.Builder
+
+type Prompter interface {
+	strings.Builder
+	WriteString(string)
+	String() string
+}
+
+func (p *PromptWriter) WriteString(s string) {
+	if (*strings.Builder)(p).Len() > 0 {
+		(*strings.Builder)(p).WriteString("\n")
+	}
+	(*strings.Builder)(p).WriteString(s)
+}
+
+func (p *PromptWriter) String() string {
+	return (*strings.Builder)(p).String()
 }
