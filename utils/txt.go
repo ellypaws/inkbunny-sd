@@ -42,6 +42,7 @@ const (
 	IDMethuzalach = 1089071
 	IDRNSDAI      = 1188211
 	IDSoph        = 229969
+	IDNastAI      = 1101622
 )
 
 // AutoSnep is a Processor that parses yaml like raw txt where each two spaces is a new dict
@@ -263,6 +264,53 @@ func Soph(opts ...func(*Config)) (map[string]entities.TextToImageRequest, error)
 	}
 
 	return objects, nil
+}
+
+func Sequential(opts ...func(*Config)) (Params, error) {
+	var c Config
+	for _, f := range opts {
+		f(&c)
+	}
+	if len(c.Text) == 0 {
+		return nil, errors.New("empty text")
+	}
+
+	var chunks Params = make(Params)
+	var page int
+	var key = fmt.Sprintf("%s-%d", c.Filename, page)
+
+	scanner := bufio.NewScanner(strings.NewReader(c.Text))
+	for scanner.Scan() {
+		if err := scanner.Err(); err != nil {
+			return nil, err
+		}
+		line := scanner.Text()
+
+		switch {
+		case len(line) == 0:
+			continue
+		case c.SkipCondition != nil && c.SkipCondition(line):
+			continue
+		case strings.HasPrefix(line, "Steps:"):
+			chunks[key][Parameters] += "\n" + line
+			page++
+			key = fmt.Sprintf("%s-%d", c.Filename, page)
+		default:
+			if chunks[key] == nil {
+				chunks[key] = make(PNGChunk)
+			}
+			if len(chunks[key][Parameters]) > 0 {
+				chunks[key][Parameters] += "\n"
+			}
+			chunks[key][Parameters] += line
+		}
+	}
+
+	if len(chunks) == 0 {
+		return nil, errors.New("no chunks found")
+	}
+
+	return chunks, nil
 }
 
 var drugeMatchDigit = regexp.MustCompile(`(?m)^\d+`)
