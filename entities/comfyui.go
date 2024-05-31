@@ -495,6 +495,11 @@ const (
 	DPRandomGenerator           NodeType = "DPRandomGenerator"
 	SaveTextFile                NodeType = "Save Text File"
 	LoraLoaderStack             NodeType = "Lora Loader Stack (rgthree)"
+	StupidSimpleNumber          NodeType = "Stupid Simple Number (INT)"
+	JDC_Plasma                  NodeType = "JDC_Plasma"
+	StupidSimpleSeed            NodeType = "Stupid Simple Seed (INT)"
+	BNK_CLIPTextEncodeAdvanced  NodeType = "BNK_CLIPTextEncodeAdvanced"
+	CheckpointLoader            NodeType = "CheckpointLoader"
 )
 
 func fallback[T any](field *T, fallback T) {
@@ -540,6 +545,14 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 			for _, input := range node.WidgetsValues.UnionArray {
 				if input.String != nil {
 					req.OverrideSettings.SDModelCheckpoint = input.String
+				}
+			}
+		case CheckpointLoader:
+			for i, input := range node.WidgetsValues.UnionArray {
+				if i%2 == 1 {
+					if input.String != nil {
+						req.OverrideSettings.SDModelCheckpoint = input.String
+					}
 				}
 			}
 		case VAELoader:
@@ -655,6 +668,13 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 						continue
 					}
 					prompt.WriteString(strings.TrimSpace(*input.String))
+				}
+			}
+		case BNK_CLIPTextEncodeAdvanced:
+			for _, input := range node.WidgetsValues.UnionArray {
+				if input.String != nil {
+					prompt.WriteString(strings.TrimSpace(*input.String))
+					break
 				}
 			}
 		case SeedNode:
