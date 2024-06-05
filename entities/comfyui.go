@@ -553,23 +553,26 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 		switch node.Type {
 		case CheckpointLoaderSimple:
 			for _, input := range node.WidgetsValues.UnionArray {
-				if input.String != nil {
-					req.OverrideSettings.SDModelCheckpoint = input.String
+				if input.String == nil {
+					continue
 				}
+				req.OverrideSettings.SDModelCheckpoint = input.String
 			}
 		case CheckpointLoader:
 			for i, input := range node.WidgetsValues.UnionArray {
 				if i%2 == 1 {
-					if input.String != nil {
-						req.OverrideSettings.SDModelCheckpoint = input.String
+					if input.String == nil {
+						continue
 					}
+					req.OverrideSettings.SDModelCheckpoint = input.String
 				}
 			}
 		case VAELoader:
 			for _, input := range node.WidgetsValues.UnionArray {
-				if input.String != nil {
-					req.OverrideSettings.SDVae = input.String
+				if input.String == nil {
+					continue
 				}
+				req.OverrideSettings.SDVae = input.String
 			}
 		case CRModelMergeStack:
 			if req.OverrideSettings.SDModelCheckpoint != nil {
@@ -618,28 +621,36 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 			for i, input := range node.WidgetsValues.UnionArray {
 				switch i % 4 {
 				case 0:
-					if input.String != nil {
-						enabled = *input.String == "On"
+					if input.String == nil {
+						continue
 					}
+					enabled = *input.String == "On"
 				case 1:
-					if input.String != nil {
-						if *input.String == "None" {
-							enabled = false
-							continue
-						}
-						if enabled {
-							lastLora = input.String
-							loras[*lastLora] = 1
-						}
+					if input.String == nil {
+						continue
 					}
+					if *input.String == "None" {
+						enabled = false
+						continue
+					}
+					if !enabled {
+						continue
+					}
+					lastLora = input.String
+					loras[*lastLora] = 1
 				case 2:
-					if input.Double != nil {
-						if enabled && lastLora != nil {
-							loras[*lastLora] = *input.Double
-							enabled = false
-							lastLora = nil
-						}
+					if input.Double == nil {
+						continue
 					}
+					if !enabled {
+						continue
+					}
+					if lastLora == nil {
+						continue
+					}
+					loras[*lastLora] = *input.Double
+					enabled = false
+					lastLora = nil
 				}
 			}
 		case LoraLoader, LoraLoaderStack:
@@ -647,176 +658,203 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 			for i, input := range node.WidgetsValues.UnionArray {
 				switch i % 2 {
 				case 0:
-					if input.String != nil {
-						lastLora = input.String
-						loras[*lastLora] = 1
+					if input.String == nil {
+						continue
 					}
+					lastLora = input.String
+					loras[*lastLora] = 1
 				case 1:
-					if input.Double != nil {
-						if lastLora != nil {
-							loras[*lastLora] = *input.Double
-							lastLora = nil
-						}
+					if input.Double == nil {
+						continue
 					}
+					if lastLora == nil {
+						continue
+					}
+					loras[*lastLora] = *input.Double
+					lastLora = nil
 				}
 			}
 		case CLIPTextEncode:
 			for _, input := range node.WidgetsValues.UnionArray {
-				if input.String != nil {
-					if node.Title != nil && strings.Contains(strings.ToLower(string(*node.Title)), "negative") {
-						req.NegativePrompt = *input.String
-						continue
-					}
-
-					// If we already have a negative prompt
-					if req.NegativePrompt != "" {
-						prompt.WriteString(strings.TrimSpace(*input.String))
-						continue
-					}
-
-					var foundNegative bool
-					for _, negative := range negatives {
-						if strings.Contains(*input.String, negative) {
-							req.NegativePrompt = *input.String
-							foundNegative = true
-							break
-						}
-					}
-					if foundNegative {
-						continue
-					}
-
-					prompt.WriteString(strings.TrimSpace(*input.String))
+				if input.String == nil {
+					continue
 				}
+				if node.Title != nil && strings.Contains(strings.ToLower(string(*node.Title)), "negative") {
+					req.NegativePrompt = *input.String
+					continue
+				}
+
+				// If we already have a negative prompt
+				if req.NegativePrompt != "" {
+					prompt.WriteString(strings.TrimSpace(*input.String))
+					continue
+				}
+
+				var foundNegative bool
+				for _, negative := range negatives {
+					if strings.Contains(*input.String, negative) {
+						req.NegativePrompt = *input.String
+						foundNegative = true
+						break
+					}
+				}
+				if foundNegative {
+					continue
+				}
+
+				prompt.WriteString(strings.TrimSpace(*input.String))
 			}
 		case BNK_CLIPTextEncodeAdvanced:
 			for _, input := range node.WidgetsValues.UnionArray {
-				if input.String != nil {
-					prompt.WriteString(strings.TrimSpace(*input.String))
-					break
+				if input.String == nil {
+					continue
 				}
+				prompt.WriteString(strings.TrimSpace(*input.String))
+				break
 			}
 		case PromptWithStyle:
 			for i, input := range node.WidgetsValues.UnionArray {
 				switch i {
 				case 0:
-					if input.String != nil {
-						prompt.WriteString(strings.TrimSpace(*input.String))
+					if input.String == nil {
+						continue
 					}
+					prompt.WriteString(strings.TrimSpace(*input.String))
 				case 1:
-					if input.String != nil {
-						req.NegativePrompt = *input.String
+					if input.String == nil {
+						continue
 					}
+					req.NegativePrompt = *input.String
 				case 3:
-					if input.String != nil {
-						dimensions := regexp.MustCompile(`(\d+)x(\d+)`).FindStringSubmatch(*input.String)
-						if len(dimensions) < 3 {
-							continue
-						}
+					if input.String == nil {
+						continue
+					}
+					dimensions := regexp.MustCompile(`(\d+)x(\d+)`).FindStringSubmatch(*input.String)
+					if len(dimensions) < 3 {
+						continue
+					}
 
-						width, err := strconv.Atoi(dimensions[1])
-						if err == nil {
-							req.Width = width
-						}
+					width, err := strconv.Atoi(dimensions[1])
+					if err == nil {
+						req.Width = width
+					}
 
-						height, err := strconv.Atoi(dimensions[2])
-						if err == nil {
-							req.Height = height
-						}
+					height, err := strconv.Atoi(dimensions[2])
+					if err == nil {
+						req.Height = height
 					}
 				case 4:
-					if input.Double != nil {
-						req.BatchSize = int(*input.Double)
+					if input.Double == nil {
+						continue
 					}
+					req.BatchSize = int(*input.Double)
 				case 5:
-					if input.Double != nil {
-						req.Seed = int64(*input.Double)
+					if input.Double == nil {
+						continue
 					}
+					req.Seed = int64(*input.Double)
 				}
 			}
 		case SeedNode:
 			for _, input := range node.WidgetsValues.UnionArray {
-				if input.Double != nil {
-					req.Seed = int64(*input.Double)
+				if input.Double == nil {
+					continue
 				}
+				req.Seed = int64(*input.Double)
 			}
 		case KSamplerAdvanced:
 			for i, input := range node.WidgetsValues.UnionArray {
 				switch i {
 				case 1:
-					if input.Double != nil {
-						req.Seed = int64(*input.Double)
+					if input.Double == nil {
+						continue
 					}
+					req.Seed = int64(*input.Double)
 				case 3:
-					if input.Double != nil {
-						req.Steps = int(*input.Double)
+					if input.Double == nil {
+						continue
 					}
+					req.Steps = int(*input.Double)
 				case 4:
-					if input.Double != nil {
-						req.CFGScale = *input.Double
+					if input.Double == nil {
+						continue
 					}
+					req.CFGScale = *input.Double
 				case 5:
-					if input.String != nil {
-						req.SamplerName = *input.String
+					if input.String == nil {
+						continue
 					}
+					req.SamplerName = *input.String
 				case 6:
-					if input.String != nil {
-						req.Scheduler = input.String
+					if input.String == nil {
+						continue
 					}
+					req.Scheduler = input.String
 				}
 			}
 		case KSamplerCycle:
 			for i, input := range node.WidgetsValues.UnionArray {
 				switch i {
 				case 0:
-					if input.Double != nil {
-						fallback(&req.Seed, int64(*input.Double))
+					if input.Double == nil {
+						continue
 					}
+					fallback(&req.Seed, int64(*input.Double))
 				case 2:
-					if input.Double != nil {
-						req.Steps = int(*input.Double)
+					if input.Double == nil {
+						continue
 					}
+					req.Steps = int(*input.Double)
 				case 3:
-					if input.Double != nil {
-						req.CFGScale = *input.Double
+					if input.Double == nil {
+						continue
 					}
+					req.CFGScale = *input.Double
 				case 4:
-					if input.String != nil {
-						req.SamplerName = *input.String
+					if input.String == nil {
+						continue
 					}
+					req.SamplerName = *input.String
 				case 8:
-					if input.Double != nil {
-						req.HrScale = *input.Double
+					if input.Double == nil {
+						continue
 					}
+					req.HrScale = *input.Double
 				}
 			}
 		case KSampler:
 			for i, input := range node.WidgetsValues.UnionArray {
 				switch i {
 				case 0:
-					if input.Double != nil {
-						fallback(&req.Seed, int64(*input.Double))
+					if input.Double == nil {
+						continue
 					}
+					fallback(&req.Seed, int64(*input.Double))
 				case 2:
-					if input.Double != nil {
-						fallback(&req.Steps, int(*input.Double))
+					if input.Double == nil {
+						continue
 					}
+					fallback(&req.Steps, int(*input.Double))
 				case 3:
-					if input.Double != nil {
-						fallback(&req.CFGScale, *input.Double)
+					if input.Double == nil {
+						continue
 					}
+					fallback(&req.CFGScale, *input.Double)
 				case 4:
-					if input.String != nil {
-						fallback(&req.SamplerName, *input.String)
+					if input.String == nil {
+						continue
 					}
+					fallback(&req.SamplerName, *input.String)
 				case 5:
-					if input.String != nil {
-						fallback(&req.Scheduler, input.String)
+					if input.String == nil {
+						continue
 					}
+					fallback(&req.Scheduler, input.String)
 				case 6:
-					if input.Double != nil {
-						fallback(&req.DenoisingStrength, *input.Double)
+					if input.Double == nil {
+						continue
 					}
+					fallback(&req.DenoisingStrength, *input.Double)
 				}
 			}
 		case CFGGuider:
@@ -824,34 +862,38 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 				continue
 			}
 			for _, input := range node.WidgetsValues.UnionArray {
-				if input.Double != nil {
-					req.CFGScale = *input.Double
-					break
+				if input.Double == nil {
+					continue
 				}
+				req.CFGScale = *input.Double
+				break
 			}
 		case CRModulePipeLoader:
 			for _, input := range node.WidgetsValues.UnionArray {
-				if input.Double != nil {
-					req.Seed = int64(*input.Double)
-					break
+				if input.Double == nil {
+					continue
 				}
+				req.Seed = int64(*input.Double)
+				break
 			}
 		case AlignYourStepsScheduler:
 			for i, input := range node.WidgetsValues.UnionArray {
 				if i != 1 {
 					continue
 				}
-				if input.Double != nil {
-					req.Steps = int(*input.Double)
-					break
+				if input.Double == nil {
+					continue
 				}
+				req.Steps = int(*input.Double)
+				break
 			}
 		case DPRandomGenerator:
 			for _, input := range node.WidgetsValues.UnionArray {
-				if input.String != nil {
-					prompt.WriteString(*input.String)
-					break
+				if input.String == nil {
+					continue
 				}
+				prompt.WriteString(*input.String)
+				break
 			}
 		}
 	}
