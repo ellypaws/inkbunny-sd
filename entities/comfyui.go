@@ -516,9 +516,16 @@ func fallback[T any](field *T, fallback T) {
 }
 
 var negatives = []string{
+	"bad quality",
 	"low quality",
+	"worst quality",
 	"easynegative",
-	"blurry",
+	"embedding:bwu",
+	"embedding:dfc",
+	"embedding:ubbp",
+	"embedding:updn",
+	"embedding:bad-artist",
+	"embedding:boring_e621",
 }
 
 func (r *ComfyUI) Convert() *TextToImageRequest {
