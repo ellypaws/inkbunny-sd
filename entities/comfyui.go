@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 )
 import "errors"
@@ -500,6 +502,8 @@ const (
 	StupidSimpleSeed            NodeType = "Stupid Simple Seed (INT)"
 	BNK_CLIPTextEncodeAdvanced  NodeType = "BNK_CLIPTextEncodeAdvanced"
 	CheckpointLoader            NodeType = "CheckpointLoader"
+	LoraLoaderPys               NodeType = "LoraLoader|pysssss"
+	PromptWithStyle             NodeType = "Prompt With Style"
 )
 
 func fallback[T any](field *T, fallback T) {
@@ -675,6 +679,44 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 				if input.String != nil {
 					prompt.WriteString(strings.TrimSpace(*input.String))
 					break
+				}
+			}
+		case PromptWithStyle:
+			for i, input := range node.WidgetsValues.UnionArray {
+				switch i {
+				case 0:
+					if input.String != nil {
+						prompt.WriteString(strings.TrimSpace(*input.String))
+					}
+				case 1:
+					if input.String != nil {
+						req.NegativePrompt = *input.String
+					}
+				case 3:
+					if input.String != nil {
+						dimensions := regexp.MustCompile(`(\d+)x(\d+)`).FindStringSubmatch(*input.String)
+						if len(dimensions) < 3 {
+							continue
+						}
+
+						width, err := strconv.Atoi(dimensions[1])
+						if err == nil {
+							req.Width = width
+						}
+
+						height, err := strconv.Atoi(dimensions[2])
+						if err == nil {
+							req.Height = height
+						}
+					}
+				case 4:
+					if input.Double != nil {
+						req.BatchSize = int(*input.Double)
+					}
+				case 5:
+					if input.Double != nil {
+						req.Seed = int64(*input.Double)
+					}
 				}
 			}
 		case SeedNode:
