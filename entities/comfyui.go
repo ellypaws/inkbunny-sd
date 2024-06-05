@@ -668,6 +668,8 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 						req.NegativePrompt = *input.String
 						continue
 					}
+
+					// If we already have a negative prompt
 					if req.NegativePrompt != "" {
 						prompt.WriteString(strings.TrimSpace(*input.String))
 						continue
