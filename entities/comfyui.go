@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -674,12 +673,19 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 						prompt.WriteString(strings.TrimSpace(*input.String))
 						continue
 					}
-					if slices.ContainsFunc(negatives, func(negative string) bool {
-						return strings.Contains(*input.String, negative)
-					}) {
-						req.NegativePrompt = *input.String
+
+					var foundNegative bool
+					for _, negative := range negatives {
+						if strings.Contains(*input.String, negative) {
+							req.NegativePrompt = *input.String
+							foundNegative = true
+							break
+						}
+					}
+					if foundNegative {
 						continue
 					}
+
 					prompt.WriteString(strings.TrimSpace(*input.String))
 				}
 			}
