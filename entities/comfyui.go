@@ -135,6 +135,10 @@ type WidgetsValueClass struct {
 	ForwardFilename  *string  `json:"forward_filename,omitempty"`
 	ForwardSubfolder *string  `json:"forward_subfolder,omitempty"`
 	ForwardType      *string  `json:"forward_type,omitempty"`
+
+	// Content for LoraLoaderPys
+	Content *string `json:"content,omitempty"`
+	Image   any     `json:"image,omitempty"`
 }
 
 type WidgetsValuesClass struct {
@@ -662,6 +666,33 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 						continue
 					}
 					lastLora = input.String
+					loras[*lastLora] = 1
+				case 1:
+					if input.Double == nil {
+						continue
+					}
+					if lastLora == nil {
+						continue
+					}
+					loras[*lastLora] = *input.Double
+					lastLora = nil
+				}
+			}
+		case LoraLoaderPys:
+			var lastLora *string
+			for i, input := range node.WidgetsValues.UnionArray {
+				switch i {
+				case 0:
+					if input.WidgetsValueClass == nil {
+						continue
+					}
+					if input.WidgetsValueClass.Content == nil {
+						continue
+					}
+					if *input.WidgetsValueClass.Content == "None" {
+						continue
+					}
+					lastLora = input.WidgetsValueClass.Content
 					loras[*lastLora] = 1
 				case 1:
 					if input.Double == nil {
