@@ -578,6 +578,8 @@ func (r *ComfyUIBasic) Convert() *TextToImageRequest {
 				}
 				req.OverrideSettings.SDVae = input.String
 			}
+		case SamplerDPMPP_3M_SDE:
+			req.SamplerName = "DPMPP_3M_SDE"
 		case CRModelMergeStack:
 			if req.OverrideSettings.SDModelCheckpoint != nil {
 				continue
