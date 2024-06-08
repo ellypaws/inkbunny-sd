@@ -6,19 +6,19 @@ import (
 	"github.com/ellypaws/inkbunny-sd/entities"
 )
 
-type CubFestAITime map[string]ComfyUICubFestAI
+type CubFestAITime map[string]CubFestAI
 
-func UnmarshalComfyUICubFestAITime(data []byte) (CubFestAITime, error) {
+func UnmarshalCubFestAIDate(data []byte) (CubFestAITime, error) {
 	var r CubFestAITime
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *ComfyUICubFestAI) Marshal() ([]byte, error) {
+func (r *CubFestAI) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type ComfyUICubFestAI struct {
+type CubFestAI struct {
 	FilenamePrefix    string            `json:"filename_prefix"`
 	Resolution        string            `json:"resolution"`
 	Checkpoint        string            `json:"checkpoint"`
@@ -42,7 +42,7 @@ type SamplerParameters struct {
 	Denoise     float64 `json:"denoise"`
 }
 
-func (r *ComfyUICubFestAI) Convert() entities.TextToImageRequest {
+func (r *CubFestAI) Convert() entities.TextToImageRequest {
 	var width, height int
 	if r.Resolution != "" {
 		_, _ = fmt.Sscanf(r.Resolution, "%dx%d", &width, &height)

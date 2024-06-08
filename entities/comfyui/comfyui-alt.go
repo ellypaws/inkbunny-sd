@@ -4,7 +4,7 @@ import "encoding/json"
 
 type Alternate map[string]AlternateValue
 
-func UnmarshalComfyUIAlternate(data []byte) (Alternate, error) {
+func UnmarshalAlternate(data []byte) (Alternate, error) {
 	var r Alternate
 	err := json.Unmarshal(data, &r)
 	return r, err
