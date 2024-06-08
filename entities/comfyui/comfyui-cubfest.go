@@ -1,14 +1,15 @@
-package entities
+package comfyui
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ellypaws/inkbunny-sd/entities"
 )
 
-type ComfyUICubFestAITime map[string]ComfyUICubFestAI
+type CubFestAITime map[string]ComfyUICubFestAI
 
-func UnmarshalComfyUICubFestAITime(data []byte) (ComfyUICubFestAITime, error) {
-	var r ComfyUICubFestAITime
+func UnmarshalComfyUICubFestAITime(data []byte) (CubFestAITime, error) {
+	var r CubFestAITime
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
@@ -41,7 +42,7 @@ type SamplerParameters struct {
 	Denoise     float64 `json:"denoise"`
 }
 
-func (r *ComfyUICubFestAI) Convert() TextToImageRequest {
+func (r *ComfyUICubFestAI) Convert() entities.TextToImageRequest {
 	var width, height int
 	if r.Resolution != "" {
 		_, _ = fmt.Sscanf(r.Resolution, "%dx%d", &width, &height)
@@ -61,7 +62,7 @@ func (r *ComfyUICubFestAI) Convert() TextToImageRequest {
 		vae = &r.SamplerParameters.VaeName
 	}
 
-	return TextToImageRequest{
+	return entities.TextToImageRequest{
 		Prompt:            r.PositivePrompt,
 		Width:             width,
 		Height:            height,
@@ -72,7 +73,7 @@ func (r *ComfyUICubFestAI) Convert() TextToImageRequest {
 		Scheduler:         &r.SamplerParameters.Scheduler,
 		DenoisingStrength: r.SamplerParameters.Denoise,
 		HrUpscaler:        r.UpscaleModel,
-		OverrideSettings: Config{
+		OverrideSettings: entities.Config{
 			SDModelCheckpoint: checkpoint,
 			SDVae:             vae,
 		},

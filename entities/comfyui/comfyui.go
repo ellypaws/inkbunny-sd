@@ -1,8 +1,9 @@
-package entities
+package comfyui
 
 import (
 	"bytes"
 	"fmt"
+	"github.com/ellypaws/inkbunny-sd/entities"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -33,17 +34,17 @@ type ComfyUI struct {
 	Version    float64         `json:"version"`
 }
 
-func UnmarshalComfyUIBasic(data []byte) (ComfyUIBasic, error) {
-	var r ComfyUIBasic
+func UnmarshalComfyUIBasic(data []byte) (Basic, error) {
+	var r Basic
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *ComfyUIBasic) Marshal() ([]byte, error) {
+func (r *Basic) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type ComfyUIBasic struct {
+type Basic struct {
 	Nodes   []Node  `json:"nodes"`
 	Version float64 `json:"version"`
 }
@@ -531,20 +532,20 @@ var negatives = []string{
 	"embedding:boring_e621",
 }
 
-func (r *ComfyUI) Convert() *TextToImageRequest {
-	basic := ComfyUIBasic{
+func (r *ComfyUI) Convert() *entities.TextToImageRequest {
+	basic := Basic{
 		Nodes:   r.Nodes,
 		Version: r.Version,
 	}
 	return basic.Convert()
 }
 
-func (r *ComfyUIBasic) Convert() *TextToImageRequest {
+func (r *Basic) Convert() *entities.TextToImageRequest {
 	if r == nil {
 		return nil
 	}
-	var _ Config
-	var req TextToImageRequest
+	var _ entities.Config
+	var req entities.TextToImageRequest
 	var prompt PromptWriter
 	var loras = make(map[string]float64)
 	for _, node := range r.Nodes {

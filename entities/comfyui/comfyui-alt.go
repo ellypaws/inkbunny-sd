@@ -1,20 +1,20 @@
-package entities
+package comfyui
 
 import "encoding/json"
 
-type ComfyUIAlternate map[string]ComfyUIAlternateValue
+type Alternate map[string]AlternateValue
 
-func UnmarshalComfyUIAlternate(data []byte) (ComfyUIAlternate, error) {
-	var r ComfyUIAlternate
+func UnmarshalComfyUIAlternate(data []byte) (Alternate, error) {
+	var r Alternate
 	err := json.Unmarshal(data, &r)
 	return r, err
 }
 
-func (r *ComfyUIAlternate) Marshal() ([]byte, error) {
+func (r *Alternate) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-type ComfyUIAlternateValue struct {
+type AlternateValue struct {
 	Inputs    Inputs `json:"inputs"`
 	ClassType string `json:"class_type"`
 }
