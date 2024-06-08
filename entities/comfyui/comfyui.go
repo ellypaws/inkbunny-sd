@@ -544,7 +544,6 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 	if r == nil {
 		return nil
 	}
-	var _ entities.Config
 	var req entities.TextToImageRequest
 	var prompt PromptWriter
 	var loras = make(map[string]float64)
