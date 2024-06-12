@@ -10,7 +10,7 @@ import (
 )
 
 func DescriptionHeuristics(description string) (entities.TextToImageRequest, error) {
-	description = RemoveBBCode(description)
+	description = CleanText(description)
 
 	if description := ParametersStart.FindString(description); description != "" {
 		params, err := Common(
@@ -182,12 +182,13 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 	request.NegativePrompt = negative.String()
 
 	// Fallback
+	clean := CleanText(parameters)
 	if request.Prompt == "" {
-		request.Prompt = ExtractPositivePrompt(parameters)
+		request.Prompt = ExtractPositivePrompt(clean)
 	}
 
 	if request.NegativePrompt == "" {
-		request.NegativePrompt = ExtractNegativePrompt(parameters)
+		request.NegativePrompt = ExtractNegativePrompt(clean)
 	}
 
 	return request, nil

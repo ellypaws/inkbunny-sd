@@ -5,7 +5,6 @@ import (
 )
 
 func ExtractPositivePrompt(s string) string {
-	s = RemoveBBCode(s)
 	result := Extract(s, positivePattern)
 
 	if result == "" {
@@ -24,7 +23,6 @@ func ExtractPositivePrompt(s string) string {
 }
 
 func ExtractNegativePrompt(s string) string {
-	s = RemoveBBCode(s)
 	result := Extract(s, negativePattern)
 
 	if result == "" {
