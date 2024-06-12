@@ -16,6 +16,7 @@ func ExtractPositiveBackwards(s string) string {
 func ExtractPositiveForward(s string) string {
 	return SearchTo(s, "positive prompt",
 		"negative prompt",
+		"negative:",
 		"steps",
 	)
 }
