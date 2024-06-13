@@ -2,6 +2,8 @@ package comfyui
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/ellypaws/inkbunny-sd/entities"
 	"reflect"
@@ -9,9 +11,6 @@ import (
 	"strconv"
 	"strings"
 )
-import "errors"
-
-import "encoding/json"
 
 func UnmarshalComfyUI(data []byte) (ComfyUI, error) {
 	var r ComfyUI
