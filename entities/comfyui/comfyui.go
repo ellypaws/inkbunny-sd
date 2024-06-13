@@ -29,9 +29,50 @@ type ComfyUI struct {
 	Nodes      []Node          `json:"nodes"`
 	Links      [][]LinkElement `json:"links"`
 	Groups     []Group         `json:"groups"`
-	Config     ExtraClass      `json:"config"`
-	Extra      ExtraClass      `json:"extra"`
+	Config     ConfigValue     `json:"config"`
+	Extra      Extra           `json:"extra"`
 	Version    float64         `json:"version"`
+}
+
+type ConfigValue struct{}
+
+type Extra struct {
+	WorkspaceInfo *WorkspaceInfo `json:"workspace_info,omitempty"`
+	Ds            *Ds            `json:"ds,omitempty"`
+	GroupNodes    *GroupNodes    `json:"groupNodes,omitempty"`
+}
+
+type WorkspaceInfo struct {
+	ID string `json:"id"`
+}
+
+type Ds struct {
+	Scale  float64 `json:"scale"`
+	Offset *Pos    `json:"offset"`
+}
+
+type GroupNodes struct {
+	Bus Bus `json:"Bus"`
+}
+
+type Bus struct {
+	Nodes    []BusNode              `json:"nodes"`
+	Links    [][]LinkElement        `json:"links"`
+	External []interface{}          `json:"external"`
+	Config   map[string]ConfigValue `json:"config"`
+}
+
+type BusNode struct {
+	Type       string      `json:"type"`
+	Pos        []int64     `json:"pos"`
+	Size       *Size       `json:"size"`
+	Flags      ConfigValue `json:"flags"`
+	Order      int64       `json:"order"`
+	Mode       int64       `json:"mode"`
+	Inputs     []Input     `json:"inputs"`
+	Outputs    []Output    `json:"outputs"`
+	Properties Properties  `json:"properties"`
+	Index      int64       `json:"index"`
 }
 
 func UnmarshalComfyUIBasic(data []byte) (Basic, error) {
@@ -48,8 +89,6 @@ type Basic struct {
 	Nodes   []Node  `json:"nodes"`
 	Version float64 `json:"version"`
 }
-
-type ExtraClass struct{}
 
 type Group struct {
 	Title    string  `json:"title"`
@@ -74,6 +113,7 @@ type Node struct {
 	Color         *string             `json:"color,omitempty"`
 	BGColor       *string             `json:"bgcolor,omitempty"`
 	Title         *Title              `json:"title,omitempty"`
+	Shape         *int64              `json:"shape,omitempty"`
 }
 
 type Mode int64
@@ -94,6 +134,7 @@ type Input struct {
 	Link      *int64   `json:"link"`
 	SlotIndex *int64   `json:"slot_index,omitempty"`
 	Widget    *Widget  `json:"widget,omitempty"`
+	Dir       *int64   `json:"dir,omitempty"`
 }
 
 type Widget struct {
@@ -102,7 +143,11 @@ type Widget struct {
 }
 
 type ConfigConfig struct {
-	Multiline bool `json:"multiline"`
+	Multiline *bool    `json:"multiline,omitempty"`
+	Default   *int64   `json:"default,omitempty"`
+	Min       *int64   `json:"min,omitempty"`
+	Max       *float64 `json:"max,omitempty"`
+	Step      *int64   `json:"step,omitempty"`
 }
 
 type Output struct {
@@ -113,6 +158,7 @@ type Output struct {
 	Shape     *int64   `json:"shape,omitempty"`
 	Dir       *int64   `json:"dir,omitempty"`
 	Label     *string  `json:"label,omitempty"`
+	Widget    *Widget  `json:"widget,omitempty"`
 }
 
 type Properties struct {
@@ -126,12 +172,14 @@ type Properties struct {
 	ToggleRestriction  *string `json:"toggleRestriction,omitempty"`
 	ShowOutputText     *bool   `json:"showOutputText,omitempty"`
 	Horizontal         *bool   `json:"horizontal,omitempty"`
+	WidgetReplace      *bool   `json:"Run widget replace on values,omitempty"`
+	ComparerMode       *string `json:"comparer_mode,omitempty"`
 }
 
 type WidgetsValueClass struct {
-	Filename         string   `json:"filename"`
-	Subfolder        string   `json:"subfolder"`
-	Type             string   `json:"type"`
+	Filename         *string  `json:"filename,omitempty"`
+	Subfolder        *string  `json:"subfolder,omitempty"`
+	Type             *string  `json:"type,omitempty"`
 	ImageHash        *float64 `json:"image_hash,omitempty"`
 	ForwardFilename  *string  `json:"forward_filename,omitempty"`
 	ForwardSubfolder *string  `json:"forward_subfolder,omitempty"`
@@ -167,28 +215,38 @@ type WidgetsValuesClass struct {
 type LinkEnum string
 
 const (
-	LinkASCII        LinkEnum = "ASCII"
-	LinkBboxDetector LinkEnum = "BBOX_DETECTOR"
-	LinkClip         LinkEnum = "CLIP"
-	LinkConditioning LinkEnum = "CONDITIONING"
-	LinkControlNet   LinkEnum = "CONTROL_NET"
-	LinkDetailerHook LinkEnum = "DETAILER_HOOK"
-	LinkDetailerPipe LinkEnum = "DETAILER_PIPE"
-	LinkEmpty        LinkEnum = "*"
-	LinkImage        LinkEnum = "IMAGE"
-	LinkImagePath    LinkEnum = "IMAGE_PATH"
-	LinkInt          LinkEnum = "INT"
-	LinkLatent       LinkEnum = "LATENT"
-	LinkLoraStack    LinkEnum = "LORA_STACK"
-	LinkMask         LinkEnum = "MASK"
-	LinkModel        LinkEnum = "MODEL"
-	LinkModelStack   LinkEnum = "MODEL_STACK"
-	LinkPipeLine     LinkEnum = "PIPE_LINE"
-	LinkSamModel     LinkEnum = "SAM_MODEL"
-	LinkSegmDetector LinkEnum = "SEGM_DETECTOR"
-	LinkString       LinkEnum = "STRING"
-	LinkUpscaleModel LinkEnum = "UPSCALE_MODEL"
-	LinkVae          LinkEnum = "VAE"
+	LinkASCII           LinkEnum = "ASCII"
+	LinkBboxDetector    LinkEnum = "BBOX_DETECTOR"
+	LinkBus             LinkEnum = "BUS"
+	LinkClip            LinkEnum = "CLIP"
+	LinkConditioning    LinkEnum = "CONDITIONING"
+	LinkControlNet      LinkEnum = "CONTROL_NET"
+	LinkControlNetStack LinkEnum = "CONTROL_NET_STACK"
+	LinkDependencies    LinkEnum = "DEPENDENCIES"
+	LinkDetailerHook    LinkEnum = "DETAILER_HOOK"
+	LinkDetailerPipe    LinkEnum = "DETAILER_PIPE"
+	LinkEmpty           LinkEnum = "*"
+	LinkFloat           LinkEnum = "FLOAT"
+	LinkGuider          LinkEnum = "GUIDER"
+	LinkImage           LinkEnum = "IMAGE"
+	LinkImagePath       LinkEnum = "IMAGE_PATH"
+	LinkInt             LinkEnum = "INT"
+	LinkLatent          LinkEnum = "LATENT"
+	LinkLoraStack       LinkEnum = "LORA_STACK"
+	LinkMask            LinkEnum = "MASK"
+	LinkModel           LinkEnum = "MODEL"
+	LinkModelStack      LinkEnum = "MODEL_STACK"
+	LinkNoise           LinkEnum = "NOISE"
+	LinkPipeLine        LinkEnum = "PIPE_LINE"
+	LinkSamModel        LinkEnum = "SAM_MODEL"
+	LinkSampler         LinkEnum = "SAMPLER"
+	LinkScript          LinkEnum = "SCRIPT"
+	LinkSdxlTuple       LinkEnum = "SDXL_TUPLE"
+	LinkSegmDetector    LinkEnum = "SEGM_DETECTOR"
+	LinkSigmas          LinkEnum = "SIGMAS"
+	LinkString          LinkEnum = "STRING"
+	LinkUpscaleModel    LinkEnum = "UPSCALE_MODEL"
+	LinkVae             LinkEnum = "VAE"
 )
 
 type WidgetName string
@@ -206,6 +264,27 @@ const (
 	IncludePrompt  Title = "Include Prompt"
 	NegativePrompt Title = "Negative Prompt"
 )
+
+type Size struct {
+	DoubleMap    map[string]float64
+	IntegerArray []int64
+}
+
+func (x *Size) UnmarshalJSON(data []byte) error {
+	x.IntegerArray = nil
+	x.DoubleMap = nil
+	object, err := unmarshalUnion(data, nil, nil, nil, nil, true, &x.IntegerArray, false, nil, true, &x.DoubleMap, false, nil, false)
+	if err != nil {
+		return err
+	}
+	if object {
+	}
+	return nil
+}
+
+func (x *Size) MarshalJSON() ([]byte, error) {
+	return marshalUnion(nil, nil, nil, nil, x.IntegerArray != nil, x.IntegerArray, false, nil, x.DoubleMap != nil, x.DoubleMap, false, nil, false)
+}
 
 type LinkElement struct {
 	Enum    *LinkEnum
@@ -298,13 +377,15 @@ type WidgetsValueElement struct {
 	Bool              *bool
 	Double            *float64
 	String            *string
+	StringArray       []string
 	WidgetsValueClass *WidgetsValueClass
 }
 
 func (x *WidgetsValueElement) UnmarshalJSON(data []byte) error {
+	x.StringArray = nil
 	x.WidgetsValueClass = nil
 	var c WidgetsValueClass
-	object, err := unmarshalUnion(data, nil, &x.Double, &x.Bool, &x.String, false, nil, true, &c, false, nil, false, nil, true)
+	object, err := unmarshalUnion(data, nil, &x.Double, &x.Bool, &x.String, true, &x.StringArray, true, &c, false, nil, false, nil, true)
 	if err != nil {
 		return err
 	}
@@ -315,7 +396,7 @@ func (x *WidgetsValueElement) UnmarshalJSON(data []byte) error {
 }
 
 func (x *WidgetsValueElement) MarshalJSON() ([]byte, error) {
-	return marshalUnion(nil, x.Double, x.Bool, x.String, false, nil, x.WidgetsValueClass != nil, x.WidgetsValueClass, false, nil, false, nil, true)
+	return marshalUnion(nil, x.Double, x.Bool, x.String, x.StringArray != nil, x.StringArray, x.WidgetsValueClass != nil, x.WidgetsValueClass, false, nil, false, nil, true)
 }
 
 func unmarshalUnion(data []byte, pi **int64, pf **float64, pb **bool, ps **string, haveArray bool, pa interface{}, haveObject bool, pc interface{}, haveMap bool, pm interface{}, haveEnum bool, pe interface{}, nullable bool) (bool, error) {
@@ -508,6 +589,12 @@ const (
 	CheckpointLoader            NodeType = "CheckpointLoader"
 	LoraLoaderPys               NodeType = "LoraLoader|pysssss"
 	PromptWithStyle             NodeType = "Prompt With Style"
+	UnpackSDXLTuple             NodeType = "Unpack SDXL Tuple"
+	WorkflowBus                 NodeType = "workflow/Bus"
+	ImageComparer               NodeType = "Image Comparer (rgthree)"
+	LoRAStacker                 NodeType = "LoRA Stacker"
+	EffLoaderSDXL               NodeType = "Eff. Loader SDXL"
+	KSamplerSDXL                NodeType = "KSampler SDXL (Eff.)"
 )
 
 func fallback[T any](field *T, fallback T) {
@@ -888,6 +975,92 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 						continue
 					}
 					fallback(&req.DenoisingStrength, *input.Double)
+				}
+			}
+		case EffLoaderSDXL:
+			for i, input := range node.WidgetsValues.UnionArray {
+				switch i {
+				case 0:
+					if input.String == nil {
+						continue
+					}
+					req.OverrideSettings.SDModelCheckpoint = input.String
+				case 1:
+					if input.Double == nil {
+						continue
+					}
+					req.OverrideSettings.CLIPStopAtLastLayers = *input.Double
+				case 2: // Refiner model
+				case 3: // Refiner CLIP skip
+				case 4: // Refiner Positive A score
+				case 5: // Refiner Negative A score
+				case 6:
+					if input.String == nil {
+						continue
+					}
+					req.OverrideSettings.SDVae = input.String
+				case 7:
+					if input.String == nil {
+						continue
+					}
+					prompt.WriteString(*input.String)
+				case 8:
+					if input.String == nil {
+						continue
+					}
+					req.NegativePrompt = *input.String
+				case 9: // Token normalization
+				case 10: // Weight interpolation
+				case 11:
+					if input.Double == nil {
+						continue
+					}
+					req.Width = int(*input.Double)
+				case 12:
+					if input.Double == nil {
+						continue
+					}
+					req.Height = int(*input.Double)
+				case 13:
+					if input.Double == nil {
+						continue
+					}
+					req.BatchSize = int(*input.Double)
+				}
+			}
+		case KSamplerSDXL:
+			for i, input := range node.WidgetsValues.UnionArray {
+				switch i {
+				case 0:
+					if input.Double == nil {
+						continue
+					}
+					req.Seed = int64(*input.Double)
+				case 1:
+					if input.Double == nil {
+						continue
+					}
+					req.Seed = int64(*input.Double)
+				case 2:
+					if input.Double == nil {
+						continue
+					}
+					req.Steps = int(*input.Double)
+				case 3:
+					if input.Double == nil {
+						continue
+					}
+					req.CFGScale = *input.Double
+				case 4:
+					if input.String == nil {
+						continue
+					}
+					req.SamplerName = *input.String
+				case 5:
+					if input.String == nil {
+						continue
+					}
+					req.Scheduler = input.String
 				}
 			}
 		case CFGGuider:
