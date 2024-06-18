@@ -12,7 +12,7 @@ var (
 		"steps":      regexp.MustCompile(`(?i)steps[:\s-]+(?P<steps>\d+)`),
 		"sampler":    regexp.MustCompile(`(?i)sampl(?:er|ing method)[:\s-]+(?P<sampler>[\w+ ]+)`),
 		"cfg":        regexp.MustCompile(`(?i)(?:cfg(?: scale)?|scale)[:\s-]+(?P<cfg>[\d.]+)`),
-		"seed":       regexp.MustCompile(`(?i)seeds?[:\s-]+(?P<seed>\d+)`),
+		"seed":       regexp.MustCompile(`(?i)seeds?[:\s-]+?(?P<seed>-?\d+)`),
 		"width":      regexp.MustCompile(`(?i)size[:\s-]+(?P<width>\d+)x\d+`),
 		"height":     regexp.MustCompile(`(?i)size[:\s-]+\d+x(?P<height>\d+)`),
 		"hash":       regexp.MustCompile(`(?i)model hash[:\s-]+(?P<hash>\w+)`),
