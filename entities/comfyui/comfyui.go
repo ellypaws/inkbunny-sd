@@ -874,12 +874,21 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 					req.Seed = int64(*input.Double)
 				}
 			}
+		case RandomNoise:
+			for _, input := range node.WidgetsValues.UnionArray {
+				if input.Double == nil {
+					continue
+				}
+				req.Seed = int64(*input.Double)
+				break
+			}
 		case SeedNode:
 			for _, input := range node.WidgetsValues.UnionArray {
 				if input.Double == nil {
 					continue
 				}
 				req.Seed = int64(*input.Double)
+				break
 			}
 		case KSamplerAdvanced:
 			for i, input := range node.WidgetsValues.UnionArray {
