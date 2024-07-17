@@ -634,6 +634,9 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 	var prompt PromptWriter
 	var loras = make(map[string]float64)
 	for _, node := range r.Nodes {
+		if node.WidgetsValues == nil {
+			continue
+		}
 		if node.Mode == ModeMuted {
 			continue
 		}
