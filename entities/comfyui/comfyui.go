@@ -544,6 +544,7 @@ const (
 	FastGroupsMuter             NodeType = "Fast Groups Muter (rgthree)"
 	SimpleCounter               NodeType = "Simple Counter"
 	KSampler                    NodeType = "KSampler"
+	KSamplerEfficient           NodeType = "KSampler (Efficient)"
 	UltralyticsDetectorProvider NodeType = "UltralyticsDetectorProvider"
 	FaceDetailer                NodeType = "FaceDetailer"
 	Reroute                     NodeType = "Reroute"
@@ -1058,7 +1059,7 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 					req.BatchSize = int(*input.Double)
 				}
 			}
-		case KSamplerSDXL:
+		case KSamplerSDXL, KSamplerEfficient:
 			for i, input := range node.WidgetsValues.UnionArray {
 				switch i {
 				case 0:
