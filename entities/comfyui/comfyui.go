@@ -593,6 +593,7 @@ const (
 	WorkflowBus                 NodeType = "workflow/Bus"
 	ImageComparer               NodeType = "Image Comparer (rgthree)"
 	LoRAStacker                 NodeType = "LoRA Stacker"
+	EfficientLoader             NodeType = "Efficient Loader"
 	EffLoaderSDXL               NodeType = "Eff. Loader SDXL"
 	KSamplerSDXL                NodeType = "KSampler SDXL (Eff.)"
 	CRModuleOutput              NodeType = "CR Module Output"
@@ -1006,6 +1007,59 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 						continue
 					}
 					fallback(&req.DenoisingStrength, *input.Double)
+				}
+			}
+		case EfficientLoader:
+			for i, input := range node.WidgetsValues.UnionArray {
+				switch i {
+				case 0:
+					if input.String == nil {
+						continue
+					}
+					req.OverrideSettings.SDModelCheckpoint = input.String
+				case 1:
+					if input.String == nil {
+						continue
+					}
+					req.OverrideSettings.SDVae = input.String
+				case 2:
+					if input.Double == nil {
+						continue
+					}
+					req.OverrideSettings.CLIPStopAtLastLayers = *input.Double
+				case 3:
+					if input.String == nil {
+						continue
+					}
+					if *input.String == "None" {
+						continue
+					}
+					loras[*input.String] = 1
+				case 4:
+					if input.String == nil {
+						continue
+					}
+					prompt.WriteString(*input.String)
+				case 5:
+					if input.String == nil {
+						continue
+					}
+					req.NegativePrompt = *input.String
+				case 10:
+					if input.Double == nil {
+						continue
+					}
+					req.Width = int(*input.Double)
+				case 11:
+					if input.Double == nil {
+						continue
+					}
+					req.Height = int(*input.Double)
+				case 12:
+					if input.Double == nil {
+						continue
+					}
+					req.BatchSize = int(*input.Double)
 				}
 			}
 		case EffLoaderSDXL:
