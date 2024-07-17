@@ -594,6 +594,13 @@ const (
 	LoRAStacker                 NodeType = "LoRA Stacker"
 	EffLoaderSDXL               NodeType = "Eff. Loader SDXL"
 	KSamplerSDXL                NodeType = "KSampler SDXL (Eff.)"
+	CRModuleOutput              NodeType = "CR Module Output"
+	ControlNetApplyAdvanced     NodeType = "ControlNetApplyAdvanced"
+	workflowDetailer            NodeType = "workflow/Detailer"
+	TensorRTLoader              NodeType = "TensorRTLoader"
+	PowerLoraLoader             NodeType = "Power Lora Loader (rgthree)"
+	WorkflowPrompts             NodeType = "workflow/Prompts"
+	HighResFixScript            NodeType = "HighRes-Fix Script"
 )
 
 func fallback[T any](field *T, fallback T) {
@@ -825,6 +832,18 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 				}
 
 				prompt.WriteString(strings.TrimSpace(*input.String))
+			}
+		case WorkflowPrompts:
+			for i, input := range node.WidgetsValues.UnionArray {
+				if input.String == nil {
+					continue
+				}
+				switch i {
+				case 0, 1:
+					prompt.WriteString(strings.TrimSpace(*input.String))
+				case 2:
+					req.NegativePrompt = *input.String
+				}
 			}
 		case BNK_CLIPTextEncodeAdvanced:
 			for _, input := range node.WidgetsValues.UnionArray {
