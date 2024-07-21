@@ -15,7 +15,7 @@ func DescriptionHeuristics(description string) (entities.TextToImageRequest, err
 	if description := ParametersStart.FindString(description); description != "" {
 		params, err := Common(
 			WithString(description),
-			WithKeyCondition(func(line string) bool { return strings.HasPrefix(line, "parameters") }))
+			WithKeyCondition(func(line string) bool { return ParametersStart.MatchString(line) }))
 		if err != nil {
 			return entities.TextToImageRequest{}, err
 		}
