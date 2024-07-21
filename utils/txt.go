@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ellypaws/inkbunny-sd/entities"
-	"io"
-	"os"
 	"regexp"
 	"strings"
 )
