@@ -1010,6 +1010,7 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 				}
 			}
 		case EfficientLoader:
+			var lastLora *string
 			for i, input := range node.WidgetsValues.UnionArray {
 				switch i {
 				case 0:
@@ -1035,12 +1036,22 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 						continue
 					}
 					loras[*input.String] = 1
+					lastLora = input.String
 				case 4:
+					if input.Double == nil {
+						continue
+					}
+					if lastLora == nil {
+						continue
+					}
+					loras[*lastLora] = *input.Double
+					lastLora = nil
+				case 6:
 					if input.String == nil {
 						continue
 					}
 					prompt.WriteString(*input.String)
-				case 5:
+				case 7:
 					if input.String == nil {
 						continue
 					}
