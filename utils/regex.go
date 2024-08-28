@@ -10,6 +10,7 @@ var (
 	// The keys are the names of the capture groups in the pattern. Currently being used in ExtractAll
 	Patterns = map[string]*regexp.Regexp{
 		"steps":      regexp.MustCompile(`(?i)steps[:\s-]+(?P<steps>\d+)`),
+		"stepsAlt":   regexp.MustCompile(`(?i)(?P<steps>\d+)\s+steps?`),
 		"sampler":    regexp.MustCompile(`(?i)sampl(?:er|ing method)[:\s-]+(?P<sampler>[\w+ ]+)`),
 		"cfg":        regexp.MustCompile(`(?i)(?:cfg(?: scale)?|scale)[:\s-]+(?P<cfg>[\d.]+)`),
 		"seed":       regexp.MustCompile(`(?i)seeds?[:\s-]+?(?P<seed>-?\d+)`),
