@@ -5,6 +5,11 @@ import (
 	"regexp"
 )
 
+const (
+	loraEntry = `(?i)(?P<key>\w+): (?P<value>\w+)`
+	tiEntry   = `(?i)(?P<key>\w+): (?P<value>\w+)`
+)
+
 var (
 	// Patterns are the regexp.Regexp patterns for DescriptionHeuristics to get the parameters from the description.
 	// The keys are the names of the capture groups in the pattern. Currently being used in ExtractAll
@@ -19,8 +24,8 @@ var (
 		"hash":       regexp.MustCompile(`(?i)model hash[:\s-]+(?P<hash>\w+)`),
 		"model":      regexp.MustCompile(`(?i)(?:model|checkpoint)s?[:\s-]+(?P<model>[^,\n]+)`),
 		"denoising":  regexp.MustCompile(`(?i)denoising strength[:\s-]+(?P<denoising>[\d.]+)`),
-		"loraHashes": regexp.MustCompile(loraHashes),
-		"tiHashes":   regexp.MustCompile(tiHashes),
+		"loraHashes": regexp.MustCompile(`(?i)lora hashes:? "(?P<lora>[^"]+)"`),
+		"tiHashes":   regexp.MustCompile(`(?i)ti hashes:? "(?P<ti>[^"]+)"`),
 		"version":    regexp.MustCompile(`(?i)version[:\s-]+(?P<version>v[\w.-]+)`),
 	}
 
@@ -60,13 +65,6 @@ var (
 	parenthesesReplacement = []byte(`\\$1`)
 	newLineReplacement     = []byte(`\n`)
 	quoteReplacement       = []byte(`"`)
-)
-
-const (
-	loraHashes = `(?i)lora hashes:? "(?P<lora>[^"]+)"`
-	loraEntry  = `(?i)(?P<key>\w+): (?P<value>\w+)`
-	tiHashes   = `(?i)ti hashes:? "(?P<ti>[^"]+)"`
-	tiEntry    = `(?i)(?P<key>\w+): (?P<value>\w+)`
 )
 
 func RemoveBBCode(s string) string {
