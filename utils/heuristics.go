@@ -37,6 +37,7 @@ func DescriptionHeuristics(description string) (entities.TextToImageRequest, err
 
 	fieldsToSet := map[string]any{
 		"steps":     &request.Steps,
+		"stepsAlt":  &request.Steps,
 		"sampler":   &request.SamplerName,
 		"cfg":       &request.CFGScale,
 		"seed":      &request.Seed,
