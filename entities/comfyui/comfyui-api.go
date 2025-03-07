@@ -56,7 +56,7 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 		case CheckpointLoaderSimple:
 			for k, v := range node.Inputs {
 				if k == "ckpt_name" {
-					Assert(v, SetFieldPointer(&request.OverrideSettings.SDModelCheckpoint))
+					Assert(v, SetFieldPointerOnce(&request.OverrideSettings.SDModelCheckpoint))
 				}
 			}
 		case EmptyLatentImage:
@@ -86,7 +86,7 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 		case VAELoader:
 			for k, v := range node.Inputs {
 				if k == "vae_name" {
-					Assert(v, SetFieldPointer(&request.OverrideSettings.SDVae))
+					Assert(v, SetFieldPointerOnce(&request.OverrideSettings.SDVae))
 				}
 			}
 		case "ttN text":
@@ -382,6 +382,15 @@ func SetField[T Settable](field *T) func(T) {
 
 func SetFieldPointer[T Settable](field **T) func(T) {
 	return func(v T) {
+		*field = &v
+	}
+}
+
+func SetFieldPointerOnce[T Settable](field **T) func(T) {
+	return func(v T) {
+		if *field != nil {
+			return
+		}
 		*field = &v
 	}
 }
