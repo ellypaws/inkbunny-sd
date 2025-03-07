@@ -53,9 +53,9 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 	)
 	for _, node := range *a {
 		if node.ClassType == "normal" {
-			node.ClassType = NodeType(node.Meta.Title)
+			node.ClassType = stringAs(NodeType(node.Meta.Title), removeEmojis, strings.TrimSpace)
 		}
-		switch stringAs(node.ClassType, strings.TrimSpace) {
+		switch node.ClassType {
 		case CheckpointLoaderSimple:
 			for k, v := range node.Inputs {
 				if k == "ckpt_name" {
@@ -182,8 +182,18 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 	return &request
 }
 
-func stringAs[T ~string](v T, f func(string) string) T {
-	return T(f(string(v)))
+func stringAs[T ~string](v T, f ...func(string) string) T {
+	for _, f := range f {
+		v = T(f(string(v)))
+	}
+	return v
+}
+
+var notAscii = regexp.MustCompile(`[^\x00-\x7F]+`)
+
+// Function to remove emojis from a string
+func removeEmojis(input string) string {
+	return notAscii.ReplaceAllString(input, "")
 }
 
 type LoraStack struct {
