@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ellypaws/inkbunny-sd/entities"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/ellypaws/inkbunny-sd/entities"
 )
 
 func UnmarshalComfyUI(data []byte) (ComfyUI, error) {
@@ -588,6 +589,7 @@ const (
 	BNK_CLIPTextEncodeAdvanced  NodeType = "BNK_CLIPTextEncodeAdvanced"
 	CheckpointLoader            NodeType = "CheckpointLoader"
 	LoraLoaderPys               NodeType = "LoraLoader|pysssss"
+	ShowTextPys                 NodeType = "ShowText|pysssss"
 	PromptWithStyle             NodeType = "Prompt With Style"
 	UnpackSDXLTuple             NodeType = "Unpack SDXL Tuple"
 	WorkflowBus                 NodeType = "workflow/Bus"
@@ -603,6 +605,7 @@ const (
 	PowerLoraLoader             NodeType = "Power Lora Loader (rgthree)"
 	WorkflowPrompts             NodeType = "workflow/Prompts"
 	HighResFixScript            NodeType = "HighRes-Fix Script"
+	Digital2KSampler            NodeType = "CCF_V0.342_Sampler"
 )
 
 func fallback[T any](field *T, fallback T) {
