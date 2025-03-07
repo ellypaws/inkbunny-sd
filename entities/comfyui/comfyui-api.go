@@ -56,7 +56,7 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 			node.ClassType = stringAs(NodeType(node.Meta.Title), removeEmojis, strings.TrimSpace)
 		}
 		switch node.ClassType {
-		case CheckpointLoaderSimple:
+		case CheckpointLoaderSimple, LoadCheckpoint:
 			for k, v := range node.Inputs {
 				if k == "ckpt_name" {
 					Assert(v, SetFieldPointerOnce(&request.OverrideSettings.SDModelCheckpoint))

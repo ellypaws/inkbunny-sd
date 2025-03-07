@@ -532,6 +532,7 @@ const (
 	Note                        NodeType = "Note"
 	FreeU_V2                    NodeType = "FreeU_V2"
 	CheckpointLoaderSimple      NodeType = "CheckpointLoaderSimple"
+	LoadCheckpoint              NodeType = "Load Checkpoint"
 	KSamplerAdvanced            NodeType = "KSamplerAdvanced"
 	KSamplerCycle               NodeType = "KSampler Cycle"
 	CRApplyLoRAStack            NodeType = "CR Apply LoRA Stack"
