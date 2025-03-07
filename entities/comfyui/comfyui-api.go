@@ -71,17 +71,10 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 				}
 			}
 		case CLIPTextEncode, CLIPTextEncodeSDXL:
-			// if id, ok := IsLink(node.Inputs, "text"); ok {
-			// 	v, ok := Access[string](*a, id, "inStr")
-			// 	if ok {
-			// 		Assert(v, Writer(&prompt))
-			// 		continue
-			// 	}
-			// }
 			for k, v := range node.Inputs {
 				switch k {
 				case "text":
-					AssertLinked(*a, v, "inStr", Writer(&prompt))
+					AssertGetter(*a, v, GetTexts, Writer(&prompt))
 				case "target_width":
 					AssertNumber(v, SetField(&request.Width))
 				case "target_height":
@@ -125,6 +118,23 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 				switch k {
 				case "seed":
 					AssertNumber(v, SetField(&request.Seed))
+				case "steps":
+					AssertNumber(v, SetField(&request.Steps))
+				case "cfg":
+					AssertNumber(v, SetField(&request.CFGScale))
+				case "sampler_name":
+					Assert(v, SetField(&request.SamplerName))
+				case "scheduler":
+					Assert(v, SetFieldPointer(&request.Scheduler))
+				case "denoise":
+					AssertNumber(v, SetField(&request.DenoisingStrength))
+				}
+			}
+		case SamplerCustomAdvanced:
+			for k, v := range node.Inputs {
+				switch k {
+				case "noise":
+					AssertGetterNumber(*a, v, GetSeed[int64], SetField(&request.Seed))
 				case "steps":
 					AssertNumber(v, SetField(&request.Steps))
 				case "cfg":
@@ -239,6 +249,38 @@ func AssertNumber[T Number](val any, setter func(T)) {
 	}
 }
 
+func AssertGetterNumber[T Number](nodes Api, val any, getter func(ApiNode) (T, bool), setter func(T)) {
+	if id, ok := isLink(val); ok {
+		if node, ok := nodes[id]; ok {
+			if v, ok := getter(node); ok {
+				setter(v)
+				return
+			}
+		}
+	}
+	AssertNumber(val, setter)
+}
+
+type SignedNumber interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~float32 | ~float64
+}
+
+func GetSeed[T SignedNumber](node ApiNode) (T, bool) {
+	switch node.ClassType {
+	case RandomNoise:
+	default:
+		return -1, false
+	}
+	var i T
+	for k, v := range node.Inputs {
+		switch k {
+		case "noise_seed":
+			AssertNumber(v, SetField(&i))
+		}
+	}
+	return i, true
+}
+
 type Settable interface {
 	cmp.Ordered | ~bool
 }
@@ -263,30 +305,37 @@ func AssertLinked[T StringBool](nodes Api, val any, access string, setter func(T
 	Assert(val, setter)
 }
 
-func isLink(val any) (string, bool) {
-	vals, ok := val.([]any)
-	if !ok {
-		return "", false
-	}
-	if len(vals) < 2 {
-		return "", false
-	}
-	if _, ok := vals[0].(string); !ok {
-		return "", false
-	}
-	if _, ok := vals[1].(float64); !ok {
-		if _, ok := vals[1].(json.Number); !ok {
-			return "", false
+func AssertGetter[T StringBool](nodes Api, val any, getter func(ApiNode) (T, bool), setter func(T)) {
+	if id, ok := isLink(val); ok {
+		if node, ok := nodes[id]; ok {
+			if v, ok := getter(node); ok {
+				setter(v)
+				return
+			}
 		}
 	}
-	return vals[0].(string), true
+	Assert(val, setter)
 }
 
-func IsLink(inputs map[string]any, access string) (string, bool) {
-	val, ok := inputs[access]
-	if !ok {
+func GetTexts(node ApiNode) (string, bool) {
+	switch node.ClassType {
+	case String, TextString:
+	default:
 		return "", false
 	}
+	var prompt PromptWriter
+	for k, v := range node.Inputs {
+		switch {
+		case strings.HasPrefix(k, "text"):
+			Assert(v, Writer(&prompt))
+		case k == "inStr":
+			Assert(v, Writer(&prompt))
+		}
+	}
+	return prompt.String(), prompt.Len() > 0
+}
+
+func isLink(val any) (string, bool) {
 	vals, ok := val.([]any)
 	if !ok {
 		return "", false

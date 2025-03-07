@@ -553,6 +553,7 @@ const (
 	ModelSamplingDiscrete       NodeType = "ModelSamplingDiscrete"
 	LatentUpscaleBy             NodeType = "LatentUpscaleBy"
 	String                      NodeType = "String"
+	TextString                  NodeType = "Text String"
 	TextToString                NodeType = "Text to String"
 	TextMultiline               NodeType = "Text Multiline"
 	ControlNetLoader            NodeType = "ControlNetLoader"
@@ -1229,4 +1230,8 @@ func (p *PromptWriter) WriteString(s string) {
 
 func (p *PromptWriter) String() string {
 	return (*strings.Builder)(p).String()
+}
+
+func (p *PromptWriter) Len() int {
+	return (*strings.Builder)(p).Len()
 }
