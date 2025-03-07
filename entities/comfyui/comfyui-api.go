@@ -21,7 +21,9 @@ func UnmarshalComfyApi(data []byte) (Api, error) {
 	return a, err
 }
 
-type Api map[string]struct {
+type Api map[string]ApiNode
+
+type ApiNode struct {
 	Inputs    map[string]any `json:"inputs"`
 	ClassType NodeType       `json:"class_type"`
 	Meta      struct {
@@ -51,12 +53,38 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 	)
 	for _, node := range *a {
 		switch node.ClassType {
-		case CLIPTextEncodeSDXL:
+		case CheckpointLoaderSimple:
+			for k, v := range node.Inputs {
+				if k == "ckpt_name" {
+					Assert(v, SetFieldPointer(&request.OverrideSettings.SDModelCheckpoint))
+				}
+			}
+		case EmptyLatentImage:
 			for k, v := range node.Inputs {
 				switch k {
 				case "width":
 					AssertNumber(v, SetField(&request.Width))
 				case "height":
+					AssertNumber(v, SetField(&request.Height))
+				default:
+					continue
+				}
+			}
+		case CLIPTextEncode, CLIPTextEncodeSDXL:
+			// if id, ok := IsLink(node.Inputs, "text"); ok {
+			// 	v, ok := Access[string](*a, id, "inStr")
+			// 	if ok {
+			// 		Assert(v, Writer(&prompt))
+			// 		continue
+			// 	}
+			// }
+			for k, v := range node.Inputs {
+				switch k {
+				case "text":
+					AssertLinked(*a, v, "inStr", Writer(&prompt))
+				case "target_width":
+					AssertNumber(v, SetField(&request.Width))
+				case "target_height":
 					AssertNumber(v, SetField(&request.Height))
 				default:
 					continue
@@ -84,6 +112,12 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 			for k, v := range node.Inputs {
 				if strings.HasPrefix(k, "text") {
 					Assert(v, Writer(&prompt))
+				}
+			}
+		case CLIPSetLastLayer:
+			for k, v := range node.Inputs {
+				if k == "stop_at_clip_layer" {
+					AssertNumber(v, SetField(&request.OverrideSettings.CLIPStopAtLastLayers))
 				}
 			}
 		case Digital2KSampler:
@@ -217,6 +251,78 @@ func Assert[T StringBool](val any, setter func(T)) {
 	if v, ok := val.(T); ok {
 		setter(v)
 	}
+}
+
+func AssertLinked[T StringBool](nodes Api, val any, access string, setter func(T)) {
+	if id, ok := isLink(val); ok {
+		if v, ok := Access[T](nodes, id, access); ok {
+			setter(v)
+			return
+		}
+	}
+	Assert(val, setter)
+}
+
+func isLink(val any) (string, bool) {
+	vals, ok := val.([]any)
+	if !ok {
+		return "", false
+	}
+	if len(vals) < 2 {
+		return "", false
+	}
+	if _, ok := vals[0].(string); !ok {
+		return "", false
+	}
+	if _, ok := vals[1].(float64); !ok {
+		if _, ok := vals[1].(json.Number); !ok {
+			return "", false
+		}
+	}
+	return vals[0].(string), true
+}
+
+func IsLink(inputs map[string]any, access string) (string, bool) {
+	val, ok := inputs[access]
+	if !ok {
+		return "", false
+	}
+	vals, ok := val.([]any)
+	if !ok {
+		return "", false
+	}
+	if len(vals) < 2 {
+		return "", false
+	}
+	if _, ok := vals[0].(string); !ok {
+		return "", false
+	}
+	if _, ok := vals[1].(float64); !ok {
+		if _, ok := vals[1].(json.Number); !ok {
+			return "", false
+		}
+	}
+	return vals[0].(string), true
+}
+
+func Access[T Settable](inputs Api, id string, inputName string) (T, bool) {
+	var zero T
+	if inputs == nil {
+		return zero, false
+	}
+
+	node, ok := inputs[id]
+	if !ok {
+		return zero, false
+	}
+
+	input, ok := node.Inputs[inputName]
+	if !ok {
+		return zero, false
+	}
+
+	t, ok := input.(T)
+	return t, ok
 }
 
 func SetField[T Settable](field *T) func(T) {
