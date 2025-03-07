@@ -52,7 +52,10 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 		loras   = make(map[string]float64)
 	)
 	for _, node := range *a {
-		switch node.ClassType {
+		if node.ClassType == "normal" {
+			node.ClassType = NodeType(node.Meta.Title)
+		}
+		switch stringAs(node.ClassType, strings.TrimSpace) {
 		case CheckpointLoaderSimple:
 			for k, v := range node.Inputs {
 				if k == "ckpt_name" {
@@ -177,6 +180,10 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 	request.Prompt = prompt.String()
 
 	return &request
+}
+
+func stringAs[T ~string](v T, f func(string) string) T {
+	return T(f(string(v)))
 }
 
 type LoraStack struct {
