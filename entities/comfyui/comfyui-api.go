@@ -116,11 +116,11 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 					AssertNumber(v, SetField(&request.OverrideSettings.CLIPStopAtLastLayers))
 				}
 			}
-		case Digital2KSampler:
+		case KSamplerEfficient, KSampler, Digital2KSampler:
 			for k, v := range node.Inputs {
 				switch k {
 				case "seed":
-					AssertNumber(v, SetField(&request.Seed))
+					AssertGetterNumber(*a, v, GetSeed[int64], SetField(&request.Seed))
 				case "steps":
 					AssertNumber(v, SetField(&request.Steps))
 				case "cfg":
@@ -162,6 +162,12 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 		case CRLoRAStack:
 			for _, v := range AsLoraStack(node.Inputs) {
 				loras[v.LoraName] = v.ModelWeight
+			}
+		case RandomNoise:
+			for k, v := range node.Inputs {
+				if k == "noise_seed" {
+					AssertNumber(v, SetField(&request.Seed))
+				}
 			}
 		case SeedNode:
 			for k, v := range node.Inputs {
@@ -284,14 +290,14 @@ type SignedNumber interface {
 
 func GetSeed[T SignedNumber](node ApiNode) (T, bool) {
 	switch node.ClassType {
-	case RandomNoise:
+	case RandomNoise, SeedNode:
 	default:
 		return -1, false
 	}
 	var i T
 	for k, v := range node.Inputs {
 		switch k {
-		case "noise_seed":
+		case "seed", "noise_seed":
 			AssertNumber(v, SetField(&i))
 		}
 	}
