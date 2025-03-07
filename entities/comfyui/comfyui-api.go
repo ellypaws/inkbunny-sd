@@ -72,12 +72,12 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 			}
 		case CLIPTextEncode, CLIPTextEncodeSDXL:
 			for k, v := range node.Inputs {
-				switch k {
-				case "text":
+				switch {
+				case strings.HasPrefix(k, "text"):
 					AssertGetter(*a, v, GetTexts, Writer(&prompt))
-				case "target_width":
+				case k == "target_width":
 					AssertNumber(v, SetField(&request.Width))
-				case "target_height":
+				case k == "target_height":
 					AssertNumber(v, SetField(&request.Height))
 				default:
 					continue
