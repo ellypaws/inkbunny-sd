@@ -332,6 +332,7 @@ func TextToImageFields(request *entities.TextToImageRequest) map[string]any {
 		"Width":                 &request.Width,
 		"Height":                &request.Height,
 		"Model":                 &request.OverrideSettings.SDModelCheckpoint,
+		"baseModel":             &request.OverrideSettings.SDModelCheckpoint,
 		"Model hash":            &request.OverrideSettings.SDCheckpointHash,
 		"VAE":                   &request.OverrideSettings.SDVae,
 		"VAE hash":              &request.OverrideSettings.SDVaeExplanation,
