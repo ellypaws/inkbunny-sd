@@ -45,10 +45,10 @@ var (
 	// Then we match with a corresponding closing `"` and/or `[,|>)}]|$`
 	allParams = regexp.MustCompile(`\b(\w[\w \-/]+):\s*("(?:\\.|[^\\"])*?"|[^,]*?)(?:[,|>)}]|$)`)
 
-	positivePattern = regexp.MustCompile(`(?ims)^(?:primary |pos(?:itive)? )?prompts?:?\s*(.+?)\s*negative`)
-	positiveEnd     = regexp.MustCompile(`(?ims)^(?:primary |pos(?:itive)? )?prompts?:?\s*(.+)`)
-	negativePattern = regexp.MustCompile(`(?ims)^neg(?:ative)?(?: prompts?)?:?\s*(.+?)\s*(?:steps|sampler|model|seed|cfg)`)
-	negativeEnd     = regexp.MustCompile(`(?ims)^neg(?:ative)?(?: prompts?)?:?\s*(.+)`)
+	positivePattern = regexp.MustCompile(`(?ims)^(?:primary |pos(?:itive)? )?prompts?[:\s-]*(.+?)\s*negative`)
+	positiveEnd     = regexp.MustCompile(`(?ims)^(?:primary |pos(?:itive)? )?prompts?[:\s-]*(.+)`)
+	negativePattern = regexp.MustCompile(`(?ims)^neg(?:ative)?(?: prompts?)?[:\s-]*(.+?)\s*(?:steps|sampler|model|seed|cfg)`)
+	negativeEnd     = regexp.MustCompile(`(?ims)^neg(?:ative)?(?: prompts?)?[:\s-]*(.+)`)
 	negativeStart   = regexp.MustCompile(`(?i)^negative(?: prompts?)?:\s*`)
 	ParametersStart = regexp.MustCompile(`(?ims)^(parameters(?:\n|$).*)`)
 
