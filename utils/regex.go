@@ -43,7 +43,7 @@ var (
 	// The first part `\\.` consumes escaped characters, and `[^\\"]` consumes everything except `"` and `\`
 	// Because some quoted values can have commas in them, we need to consume everything until a closing unescaped `"`
 	// Then we match with a corresponding closing `"` and/or `[,|>)}]|$`
-	allParams = regexp.MustCompile(`\b(\w[\w \-/]+):\s*("(?:\\.|[^\\"])*?"|[^,]*?)(?:[,|>)}]|$)`)
+	allParams = regexp.MustCompile(`(?m)\b(\w[\w \-/]+):\s*("(?:\\.|[^\\"])*?"|[^,]*?)(?:[,|>)}]|$)`)
 
 	positivePattern = regexp.MustCompile(`(?ims)^(?:primary |pos(?:itive)? )?prompts?[:\s-]*(.+?)\s*negative`)
 	positiveEnd     = regexp.MustCompile(`(?ims)^(?:primary |pos(?:itive)? )?prompts?[:\s-]*(.+)`)
