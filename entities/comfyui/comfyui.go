@@ -528,6 +528,7 @@ const (
 	ConditioningConcat          NodeType = "ConditioningConcat"
 	SaveImage                   NodeType = "SaveImage"
 	CLIPTextEncode              NodeType = "CLIPTextEncode"
+	smZCLIPTextEncode           NodeType = "smZ CLIPTextEncode"
 	ModelMergeSimple            NodeType = "ModelMergeSimple"
 	Note                        NodeType = "Note"
 	FreeU_V2                    NodeType = "FreeU_V2"

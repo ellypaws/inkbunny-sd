@@ -98,7 +98,7 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 					continue
 				}
 			}
-		case CLIPTextEncode, CLIPTextEncodeSDXL:
+		case CLIPTextEncode, CLIPTextEncodeSDXL, smZCLIPTextEncode:
 			for k, v := range node.Inputs {
 				switch {
 				case strings.HasPrefix(k, "text"):
