@@ -13,6 +13,31 @@ import (
 	"github.com/ellypaws/inkbunny-sd/entities"
 )
 
+func UnmarshalIsolatedComfyApi(data []byte) (Api, error) {
+	var container map[string]any
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	err := decoder.Decode(&container)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		traversable = make(Api)
+		nodeErrors  NodeErrors
+	)
+	for k, v := range container {
+		node, err := assertMarshal[ApiNode](v, true)
+		if err != nil {
+			nodeErrors = append(nodeErrors, err)
+			continue
+		}
+		traversable[k] = node
+	}
+
+	return traversable, nodeErrors
+}
+
 func UnmarshalComfyApi(data []byte) (Api, error) {
 	var a Api
 	decoder := json.NewDecoder(bytes.NewReader(data))
