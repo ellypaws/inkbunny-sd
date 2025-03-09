@@ -99,8 +99,8 @@ func ParameterHeuristics(parameters string) (entities.TextToImageRequest, error)
 	// Get positive and negative prompts excluding the last line, which is the extra parameters.
 	positive, negative := GetPrompts(lines[:len(lines)-1])
 
-	// Extract the parameters from the last line.
-	results := ExtractDefaultKeys(lines[len(lines)-1], DefaultResults())
+	// Extract key value pairs
+	results := ExtractDefaultKeys(parameters, DefaultResults())
 
 	if sizes, ok := results["Size"]; ok {
 		for i, size := range strings.Split(sizes, "x") {
