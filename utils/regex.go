@@ -38,7 +38,12 @@ var (
 		"negative": regexp.MustCompile(`(?is)negative prompt:\[/b]\n(?P<negative>.*?)\n\[/q]`),
 	}
 
-	allParams = regexp.MustCompile(`\s*(\w[\w \-/]+):\s*("(?:\\.|[^\\"])+"|[^,]*)(?:,|$)`)
+	// allParms is a regexp.Regexp pattern to extract all parameters from a string.
+	// The value is extracted as `("(?:\\.|[^\\"])*?"|[^,]*?)`
+	// The first part `\\.` consumes escaped characters, and `[^\\"]` consumes everything except `"` and `\`
+	// Because some quoted values can have commas in them, we need to consume everything until a closing unescaped `"`
+	// Then we match with a corresponding closing `"` and/or `[,|>)}]|$`
+	allParams = regexp.MustCompile(`\b(\w[\w \-/]+):\s*("(?:\\.|[^\\"])*?"|[^,]*?)(?:[,|>)}]|$)`)
 
 	positivePattern = regexp.MustCompile(`(?ims)^(?:(?:primary |pos(?:itive)? )?prompts?:?)\s*(.+?)\s*negative`)
 	positiveEnd     = regexp.MustCompile(`(?ims)^(?:(?:primary |pos(?:itive)? )?prompts?:?)\s*(.+)`)
