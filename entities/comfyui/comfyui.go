@@ -811,7 +811,7 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 					lastLora = nil
 				}
 			}
-		case CLIPTextEncode:
+		case CLIPTextEncode, CLIPTextEncodeSDXL:
 			for _, input := range node.WidgetsValues.UnionArray {
 				if input.String == nil {
 					continue
