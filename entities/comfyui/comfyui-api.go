@@ -5,6 +5,7 @@ import (
 	"cmp"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"slices"
 	"strconv"
@@ -30,6 +31,9 @@ func UnmarshalIsolatedComfyApi(data []byte) (Api, error) {
 		node, err := assertMarshal[ApiNode](v, true)
 		if err != nil {
 			nodeErrors = append(nodeErrors, err)
+			continue
+		}
+		if reflect.DeepEqual(node, ApiNode{}) {
 			continue
 		}
 		traversable[k] = node

@@ -29,7 +29,6 @@ func assertMarshal[T any](node any, useNumber bool) (T, error) {
 			Err:  ErrInvalidNode,
 			bin:  bin,
 		}
-
 	}
 
 	return v, nil
