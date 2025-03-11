@@ -36,7 +36,7 @@ func (r *IsolatedComfyUI) parse() (Basic, error) {
 			nodeErrors = append(nodeErrors, err)
 			continue
 		}
-		r.Nodes = append(r.Nodes, v)
+		basic.Nodes = append(basic.Nodes, v)
 	}
 
 	if nodeErrors != nil {
