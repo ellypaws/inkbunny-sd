@@ -39,7 +39,11 @@ func UnmarshalIsolatedComfyApi(data []byte) (Api, error) {
 		traversable[k] = node
 	}
 
-	return traversable, nodeErrors
+	if nodeErrors != nil {
+		return nil, nodeErrors
+	}
+
+	return traversable, nil
 }
 
 func UnmarshalComfyApi(data []byte) (Api, error) {
