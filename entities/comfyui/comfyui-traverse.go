@@ -39,5 +39,9 @@ func (r *IsolatedComfyUI) parse() (Basic, error) {
 		r.Nodes = append(r.Nodes, v)
 	}
 
-	return basic, nodeErrors
+	if nodeErrors != nil {
+		return basic, nodeErrors
+	}
+
+	return basic, nil
 }
