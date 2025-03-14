@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ellypaws/inkbunny-sd/entities"
 	"regexp"
 	"strings"
+
+	"github.com/ellypaws/inkbunny-sd/entities"
 )
 
 type Params map[string]PNGChunk
@@ -27,6 +28,7 @@ const (
 	Parameters     = "parameters"
 	Postprocessing = "postprocessing"
 	Extras         = "extras"
+	Objects        = "objects"
 	Caption        = "caption"
 
 	IDAutoSnep    = 1004248
@@ -395,9 +397,9 @@ func UseHornybunny() func(*Config) {
 			return regexp.MustCompile(`^\(\d+\)$`).MatchString(line)
 		}
 		c.Filename = "Hornybunny_"
-		//c.Text = strings.ReplaceAll(c.Text, "----", "")
-		//c.Text = strings.ReplaceAll(c.Text, "Original generation details", "")
-		//c.Text = strings.ReplaceAll(c.Text, "Upscaling details", "")
+		// c.Text = strings.ReplaceAll(c.Text, "----", "")
+		// c.Text = strings.ReplaceAll(c.Text, "Original generation details", "")
+		// c.Text = strings.ReplaceAll(c.Text, "Upscaling details", "")
 		c.Text = strings.ReplaceAll(c.Text, "Positive Prompt: ", "")
 		c.Text = strings.ReplaceAll(c.Text, "Other details: ", "")
 		c.SkipCondition = func(line string) bool {
@@ -490,9 +492,15 @@ func Common(opts ...func(*Config)) (Params, error) {
 	var chunks Params = make(Params)
 	scanner := bufio.NewScanner(strings.NewReader(c.Text))
 
-	var key string
-	var negativePrompt string
-	var extra string
+	var (
+		key            string
+		negativePrompt string
+		extra          string
+
+		objectStart string
+		objectKey   string
+		objectCount int
+	)
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
 			return nil, err
@@ -530,12 +538,29 @@ func Common(opts ...func(*Config)) (Params, error) {
 			chunks[key][Parameters] += "\n" + line
 			continue
 		}
+		if len(objectStart) > 0 {
+			chunks[key][objectKey] += "\n" + line
+			if objectStart == "{" && line == "}" {
+				objectCount++
+				objectKey = ""
+				objectStart = ""
+			}
+			if objectStart == "[" && line == "]" {
+				objectCount++
+				objectKey = ""
+				objectStart = ""
+			}
+		}
 		if len(extra) > 0 {
 			chunks[key][extra] += line
 			extra = ""
 			continue
 		}
 		switch line {
+		case "{", "[":
+			objectStart = line
+			objectKey = fmt.Sprintf("%s_%d", Objects, objectCount)
+			chunks[key][objectKey] += line
 		case Postprocessing:
 			extra = Postprocessing
 			continue
