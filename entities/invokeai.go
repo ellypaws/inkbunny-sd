@@ -32,6 +32,7 @@ func (r *InvokeAI) Convert() TextToImageRequest {
 		Seed:           r.Seed,
 		CFGScale:       r.CFGScale,
 		Steps:          int(r.Steps),
+		SamplerName:    r.Scheduler,
 		BatchSize:      1,
 		Comments: map[string]string{
 			"generation_mode":       r.GenerationMode,
