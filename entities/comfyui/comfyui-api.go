@@ -40,7 +40,7 @@ func UnmarshalIsolatedComfyApi(data []byte) (Api, error) {
 	}
 
 	if nodeErrors != nil {
-		return nil, nodeErrors
+		return traversable, nodeErrors
 	}
 
 	return traversable, nil
