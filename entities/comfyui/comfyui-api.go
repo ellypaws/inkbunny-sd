@@ -15,7 +15,7 @@ import (
 )
 
 func UnmarshalIsolatedComfyApi(data []byte) (Api, error) {
-	var container map[string]any
+	var container map[string]json.RawMessage
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.UseNumber()
 	err := decoder.Decode(&container)

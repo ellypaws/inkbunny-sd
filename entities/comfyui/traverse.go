@@ -8,26 +8,18 @@ import (
 	"strings"
 )
 
-func assertMarshal[T any](node any, useNumber bool) (T, error) {
-	var v T
-	bin, err := json.Marshal(node)
-	if err != nil {
-		return v, NodeError{
-			Node: node,
-			Err:  err,
-		}
-	}
-
-	decoder := json.NewDecoder(bytes.NewReader(bin))
+func assertMarshal[T any](node json.RawMessage, useNumber bool) (T, error) {
+	decoder := json.NewDecoder(bytes.NewReader(node))
 	if useNumber {
 		decoder.UseNumber()
 	}
-	err = decoder.Decode(&v)
+	var v T
+	err := decoder.Decode(&v)
 	if err != nil {
 		return v, NodeError{
 			Node: node,
 			Err:  ErrInvalidNode,
-			bin:  bin,
+			bin:  node,
 		}
 	}
 

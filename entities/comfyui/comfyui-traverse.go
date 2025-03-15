@@ -20,8 +20,8 @@ func (r *IsolatedComfyUI) Marshal() ([]byte, error) {
 }
 
 type IsolatedComfyUI struct {
-	Nodes   []any   `json:"nodes"`
-	Version float64 `json:"version"`
+	Nodes   []json.RawMessage `json:"nodes"`
+	Version float64           `json:"version"`
 }
 
 func (r *IsolatedComfyUI) parse() (Basic, error) {
