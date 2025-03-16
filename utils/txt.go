@@ -260,7 +260,7 @@ func Soph(opts ...func(*Config)) (map[string]entities.TextToImageRequest, error)
 
 	var objects = make(map[string]entities.TextToImageRequest)
 	for k, v := range invokeAI {
-		objects[k] = v.Convert()
+		objects[k] = *v.Convert()
 	}
 
 	return objects, nil

@@ -18,13 +18,20 @@ func (r *InvokeAI) Marshal() ([]byte, error) {
 
 // Convert converts an InvokeAI instance into a TextToImageRequest.
 // It maps available fields from InvokeAI to TextToImageRequest.
-func (r *InvokeAI) Convert() TextToImageRequest {
+func (r *InvokeAI) Convert() *TextToImageRequest {
 	loraHashes := make(map[string]string)
 	for _, lora := range r.Loras {
 		loraHashes[lora.Model.Hash] = lora.Model.Name
 	}
+	config := Config{
+		RandnSource: r.RandDevice,
+	}
+	if r.Model.Name != "" {
+		config.SDModelCheckpoint = &r.Model.Name
+		config.SDCheckpointHash = r.Model.Hash
+	}
 
-	return TextToImageRequest{
+	return &TextToImageRequest{
 		Prompt:         r.PositivePrompt,
 		NegativePrompt: r.NegativePrompt,
 		Width:          int(r.Width),
@@ -42,13 +49,9 @@ func (r *InvokeAI) Convert() TextToImageRequest {
 			"positive_style_prompt": r.PositiveStylePrompt,
 			"negative_style_prompt": r.NegativeStylePrompt,
 		},
-		OverrideSettings: Config{
-			RandnSource:       r.RandDevice,
-			SDModelCheckpoint: &r.Model.Name,
-			SDCheckpointHash:  r.Model.Hash,
-		},
-		Scheduler:  &r.Scheduler,
-		LoraHashes: loraHashes,
+		OverrideSettings: config,
+		Scheduler:        &r.Scheduler,
+		LoraHashes:       loraHashes,
 	}
 }
 
