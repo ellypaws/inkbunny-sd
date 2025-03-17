@@ -75,21 +75,6 @@ type BusNode struct {
 	Index      int64       `json:"index"`
 }
 
-func UnmarshalComfyUIBasic(data []byte) (Basic, error) {
-	var r Basic
-	err := json.Unmarshal(data, &r)
-	return r, err
-}
-
-func (r *Basic) Marshal() ([]byte, error) {
-	return json.Marshal(r)
-}
-
-type Basic struct {
-	Nodes   []Node  `json:"nodes"`
-	Version float64 `json:"version"`
-}
-
 type Group struct {
 	Title    string  `json:"title"`
 	Bounding []int64 `json:"bounding"`

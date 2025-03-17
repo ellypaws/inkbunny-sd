@@ -19,7 +19,6 @@ func assertMarshal[T any](node json.RawMessage, useNumber bool) (T, error) {
 		return v, NodeError{
 			Node: node,
 			Err:  ErrInvalidNode,
-			bin:  node,
 		}
 	}
 
@@ -29,16 +28,12 @@ func assertMarshal[T any](node json.RawMessage, useNumber bool) (T, error) {
 var ErrInvalidNode = errors.New("invalid node")
 
 type NodeError struct {
-	Node PreNode
+	Node json.RawMessage
 	Err  error
-	bin  []byte
 }
 
 func (e NodeError) Error() string {
-	if e.bin != nil {
-		return fmt.Sprintf("cannot parse node: %s, %v", e.bin, e.Err)
-	}
-	return fmt.Sprintf("cannot parse node: %v, %v", e.Node, e.Err)
+	return fmt.Sprintf("cannot parse node: %s, %v", e.Node, e.Err)
 }
 
 func (e NodeError) Unwrap() error {

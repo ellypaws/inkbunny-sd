@@ -14,6 +14,15 @@ import (
 	"github.com/ellypaws/inkbunny-sd/entities"
 )
 
+func (a *Api) UnmarshalJSON(data []byte) error {
+	api, err := UnmarshalIsolatedComfyApi(data)
+	*a = api
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func UnmarshalIsolatedComfyApi(data []byte) (Api, error) {
 	var container map[string]json.RawMessage
 	decoder := json.NewDecoder(bytes.NewReader(data))

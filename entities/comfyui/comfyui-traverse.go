@@ -4,7 +4,19 @@ import (
 	"encoding/json"
 )
 
-type PreNode any
+type Basic struct {
+	Nodes   []Node  `json:"nodes"`
+	Version float64 `json:"version"`
+}
+
+func (r *Basic) UnmarshalJSON(data []byte) error {
+	basic, err := UnmarshalIsolatedComfyUI(data)
+	if err != nil {
+		return err
+	}
+	*r = basic
+	return nil
+}
 
 func UnmarshalIsolatedComfyUI(data []byte) (Basic, error) {
 	var r IsolatedComfyUI
