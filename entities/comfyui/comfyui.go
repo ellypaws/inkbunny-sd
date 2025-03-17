@@ -513,13 +513,16 @@ const (
 	ConditioningConcat          NodeType = "ConditioningConcat"
 	SaveImage                   NodeType = "SaveImage"
 	CLIPTextEncode              NodeType = "CLIPTextEncode"
+	CLIPTextEncodeWithBreak     NodeType = "CLIPTextEncodeWithBreak"
 	smZCLIPTextEncode           NodeType = "smZ CLIPTextEncode"
 	ModelMergeSimple            NodeType = "ModelMergeSimple"
 	Note                        NodeType = "Note"
 	FreeU_V2                    NodeType = "FreeU_V2"
 	CheckpointLoaderSimple      NodeType = "CheckpointLoaderSimple"
+	ttNpipeLoaderSDXL_v2        NodeType = "ttN pipeLoaderSDXL_v2"
 	LoadCheckpoint              NodeType = "Load Checkpoint"
 	KSamplerAdvanced            NodeType = "KSamplerAdvanced"
+	KSamplerAdvancedEfficient   NodeType = "KSampler Adv. (Efficient)"
 	KSamplerCycle               NodeType = "KSampler Cycle"
 	CRApplyLoRAStack            NodeType = "CR Apply LoRA Stack"
 	CLIPSetLastLayer            NodeType = "CLIPSetLastLayer"
@@ -594,6 +597,8 @@ const (
 	WorkflowPrompts             NodeType = "workflow/Prompts"
 	HighResFixScript            NodeType = "HighRes-Fix Script"
 	Digital2KSampler            NodeType = "CCF_V0.342_Sampler"
+	GlobalSampler               NodeType = "GlobalSampler //Inspire"
+	GlobalSeed                  NodeType = "GlobalSeed //Inspire"
 )
 
 func fallback[T any](field *T, fallback T) {
@@ -658,6 +663,31 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 						continue
 					}
 					req.OverrideSettings.SDModelCheckpoint = input.String
+				}
+			}
+		case ttNpipeLoaderSDXL_v2:
+			for i, input := range node.WidgetsValues.UnionArray {
+				switch i {
+				case 0:
+					if input.String == nil {
+						continue
+					}
+					req.OverrideSettings.SDModelCheckpoint = input.String
+				case 2:
+					if input.String == nil {
+						continue
+					}
+					req.OverrideSettings.SDVae = input.String
+				case 3:
+					if input.Double == nil {
+						continue
+					}
+					req.OverrideSettings.CLIPStopAtLastLayers = *input.Double
+				case 25:
+					if input.Double == nil {
+						continue
+					}
+					req.Seed = int64(*input.Double)
 				}
 			}
 		case VAELoader:
@@ -796,7 +826,7 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 					lastLora = nil
 				}
 			}
-		case CLIPTextEncode, CLIPTextEncodeSDXL:
+		case CLIPTextEncode, CLIPTextEncodeSDXL, CLIPTextEncodeWithBreak:
 			for _, input := range node.WidgetsValues.UnionArray {
 				if input.String == nil {
 					continue
@@ -905,7 +935,27 @@ func (r *Basic) Convert() *entities.TextToImageRequest {
 				req.Seed = int64(*input.Double)
 				break
 			}
-		case KSamplerAdvanced:
+		case GlobalSampler:
+			for i, input := range node.WidgetsValues.UnionArray {
+				if input.String == nil {
+					continue
+				}
+				switch i {
+				case 0:
+					req.SamplerName = *input.String
+				case 1:
+					req.Scheduler = input.String
+				}
+			}
+		case GlobalSeed:
+			for _, input := range node.WidgetsValues.UnionArray {
+				if input.Double == nil {
+					continue
+				}
+				req.Seed = int64(*input.Double)
+				break
+			}
+		case KSamplerAdvanced, KSamplerAdvancedEfficient:
 			for i, input := range node.WidgetsValues.UnionArray {
 				switch i {
 				case 1:
