@@ -15,12 +15,9 @@ import (
 )
 
 func (a *Api) UnmarshalJSON(data []byte) error {
-	api, err := UnmarshalIsolatedComfyApi(data)
-	*a = api
-	if err != nil {
-		return err
-	}
-	return nil
+	var err error
+	*a, err = UnmarshalIsolatedComfyApi(data)
+	return err
 }
 
 func UnmarshalIsolatedComfyApi(data []byte) (Api, error) {

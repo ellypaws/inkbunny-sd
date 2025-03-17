@@ -12,10 +12,7 @@ type Basic struct {
 func (r *Basic) UnmarshalJSON(data []byte) error {
 	var err error
 	*r, err = UnmarshalIsolatedComfyUI(data)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func UnmarshalIsolatedComfyUI(data []byte) (Basic, error) {
