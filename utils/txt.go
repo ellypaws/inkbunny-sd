@@ -522,10 +522,6 @@ func Common(opts ...func(*Config)) (Params, error) {
 			continue
 		}
 		if len(negativePrompt) > 0 {
-			if !negativeHasText.MatchString(negativePrompt) {
-				chunks[key][Parameters] += line
-				continue
-			}
 			chunks[key][Parameters] += "\n" + line
 			if stepsStart.MatchString(line) {
 				negativePrompt = ""
