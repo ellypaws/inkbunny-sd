@@ -37,9 +37,9 @@ type ComfyUI struct {
 type ConfigValue struct{}
 
 type Extra struct {
-	WorkspaceInfo *WorkspaceInfo `json:"workspace_info,omitempty"`
-	Ds            *Ds            `json:"ds,omitempty"`
-	GroupNodes    *GroupNodes    `json:"groupNodes,omitempty"`
+	WorkspaceInfo *WorkspaceInfo        `json:"workspace_info,omitempty"`
+	Ds            *Ds                   `json:"ds,omitempty"`
+	GroupNodes    map[string]GroupNodes `json:"groupNodes,omitempty"`
 }
 
 type WorkspaceInfo struct {
@@ -52,27 +52,15 @@ type Ds struct {
 }
 
 type GroupNodes struct {
-	Bus Bus `json:"Bus"`
-}
-
-type Bus struct {
-	Nodes    []BusNode              `json:"nodes"`
+	Nodes    []GroupNode            `json:"nodes"`
 	Links    [][]LinkElement        `json:"links"`
-	External []interface{}          `json:"external"`
+	External [][]any                `json:"external"`
 	Config   map[string]ConfigValue `json:"config"`
 }
 
-type BusNode struct {
-	Type       string      `json:"type"`
-	Pos        []int64     `json:"pos"`
-	Size       *Size       `json:"size"`
-	Flags      ConfigValue `json:"flags"`
-	Order      int64       `json:"order"`
-	Mode       int64       `json:"mode"`
-	Inputs     []Input     `json:"inputs"`
-	Outputs    []Output    `json:"outputs"`
-	Properties Properties  `json:"properties"`
-	Index      int64       `json:"index"`
+type GroupNode struct {
+	Node
+	Index int64 `json:"index"`
 }
 
 type Group struct {
