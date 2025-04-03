@@ -3,6 +3,7 @@ package comfyui
 import (
 	"encoding/json"
 	"iter"
+	"strings"
 )
 
 type Basic struct {
@@ -51,6 +52,8 @@ func (r *IsolatedComfyUI) parse() (Basic, error) {
 			nodeErrors = append(nodeErrors, err)
 			continue
 		}
+		v.Type = NodeType(strings.TrimPrefix(string(v.Type), "workflow"))
+		v.Type = NodeType(strings.TrimLeft(string(v.Type), ">/"))
 		basic.Nodes = append(basic.Nodes, v)
 	}
 
