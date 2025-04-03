@@ -2,6 +2,7 @@ package comfyui
 
 import (
 	"encoding/json"
+	"iter"
 )
 
 type Basic struct {
@@ -30,7 +31,12 @@ func (r *IsolatedComfyUI) Marshal() ([]byte, error) {
 
 type IsolatedComfyUI struct {
 	Nodes   []json.RawMessage `json:"nodes"`
+	Extra   IsolatedExtra     `json:"extra"`
 	Version float64           `json:"version"`
+}
+
+type IsolatedExtra struct {
+	GroupNodes map[string]json.RawMessage `json:"groupNodes"`
 }
 
 func (r *IsolatedComfyUI) parse() (Basic, error) {
@@ -39,7 +45,7 @@ func (r *IsolatedComfyUI) parse() (Basic, error) {
 	}
 
 	var nodeErrors NodeErrors
-	for _, node := range r.Nodes {
+	for node := range r.iterator() {
 		v, err := assertMarshal[Node](node, false)
 		if err != nil {
 			nodeErrors = append(nodeErrors, err)
@@ -53,4 +59,19 @@ func (r *IsolatedComfyUI) parse() (Basic, error) {
 	}
 
 	return basic, nil
+}
+
+func (r *IsolatedComfyUI) iterator() iter.Seq[json.RawMessage] {
+	return func(yield func(json.RawMessage) bool) {
+		for _, node := range r.Nodes {
+			if !yield(node) {
+				return
+			}
+		}
+		for _, node := range r.Extra.GroupNodes {
+			if !yield(node) {
+				return
+			}
+		}
+	}
 }
