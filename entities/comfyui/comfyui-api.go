@@ -370,21 +370,6 @@ func Assert[T StringBool](val any, setter func(T)) {
 	}
 }
 
-// AssertLinked checks if the value is a link and switches context to that node
-// Then it uses setter to set the value from the new node.
-// If you need to transform the new node's value, use AssertGetter instead
-//
-// Deprecated: because most linked nodes are different types, use AssertGetter instead
-func AssertLinked[T StringBool](nodes Api, val any, access string, setter func(T)) {
-	if id, ok := isLink(val); ok {
-		if v, ok := Access[T](nodes, id, access); ok {
-			setter(v)
-			return
-		}
-	}
-	Assert(val, setter)
-}
-
 // AssertGetter checks if the value is a link and switches context to that node
 // It uses getter to get the value from the new node, then uses setter to set the value
 func AssertGetter[T StringBool](nodes Api, val any, getter func(ApiNode) (T, bool), setter func(T)) {
@@ -440,29 +425,6 @@ func isLink(val any) (string, bool) {
 		}
 	}
 	return vals[0].(string), true
-}
-
-// Access retrieves a linked node and input name from an Api.
-// Use this if you only have one node type and know which input you are looking for.
-// If you need to differentiate between nodes, use AssertGetter instead.
-func Access[T Settable](inputs Api, id string, inputName string) (T, bool) {
-	var zero T
-	if inputs == nil {
-		return zero, false
-	}
-
-	node, ok := inputs[id]
-	if !ok {
-		return zero, false
-	}
-
-	input, ok := node.Inputs[inputName]
-	if !ok {
-		return zero, false
-	}
-
-	t, ok := input.(T)
-	return t, ok
 }
 
 func SetField[T Settable](field *T) func(T) {
