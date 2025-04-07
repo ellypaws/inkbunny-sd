@@ -309,6 +309,10 @@ func AssertNumber[T Number](val any, setter func(T)) {
 			return
 		}
 	}
+	if v, ok := val.(T); ok {
+		setter(v)
+		return
+	}
 }
 
 // AssertGetterNumber checks if the value is a link and switches context to that node
