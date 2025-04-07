@@ -294,6 +294,8 @@ type Number interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr | ~float32 | ~float64
 }
 
+// AssertNumber checks if the value is a designated Number that setter can use and uses it to set the value
+// Use Assert for StringBool
 func AssertNumber[T Number](val any, setter func(T)) {
 	if v, ok := val.(float64); ok {
 		setter(T(v))
@@ -360,6 +362,8 @@ type StringBool interface {
 	~string | ~bool
 }
 
+// Assert checks if the value is a string or bool and uses setter to set the value
+// Use AssertNumber for numbers
 func Assert[T StringBool](val any, setter func(T)) {
 	if v, ok := val.(T); ok {
 		setter(v)
