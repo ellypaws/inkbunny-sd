@@ -345,6 +345,8 @@ func GetSeed[T SignedNumber](node ApiNode) (T, bool) {
 		switch k {
 		case "seed", "noise_seed":
 			AssertNumber(v, SetField(&i))
+		default:
+			return i, false
 		}
 	}
 	return i, true
@@ -407,6 +409,8 @@ func GetTexts(node ApiNode) (string, bool) {
 			Assert(v, Writer(&prompt))
 		case k == "inStr":
 			Assert(v, Writer(&prompt))
+		default:
+			return "", false
 		}
 	}
 	return prompt.String(), prompt.Len() > 0
