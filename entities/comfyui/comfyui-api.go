@@ -92,7 +92,7 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 	)
 	for _, node := range *a {
 		if node.ClassType == "normal" {
-			node.ClassType = stringAs(NodeType(node.Meta.Title), removeEmojis, strings.TrimSpace)
+			node.ClassType = NodeType(transform(node.Meta.Title, removeEmojis, strings.TrimSpace))
 		}
 		switch node.ClassType {
 		case CheckpointLoaderSimple, LoadCheckpoint:
@@ -227,9 +227,9 @@ func (a *Api) Convert() *entities.TextToImageRequest {
 	return &request
 }
 
-func stringAs[T ~string](v T, f ...func(string) string) T {
+func transform[T any](v T, f ...func(T) T) T {
 	for _, f := range f {
-		v = T(f(string(v)))
+		v = f(v)
 	}
 	return v
 }
